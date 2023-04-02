@@ -1,6 +1,8 @@
 # Secrets and Data
 __authsecrets__.py
 tweet_data/training/
+tweet_data/training/nn_tweet_data.json
+tweet_data/training/nn_tweet_data_processed.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -154,3 +156,4 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+tweet_data/training/nn_tweet_data.json

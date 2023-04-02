@@ -25,7 +25,7 @@ tweet_categories = {
     9: "#youtube",
     10: "friend",
     11: "#twitter",
-    12: "#facebook",
+    12: "dislike",
     13: "#anime",
     14: "inflation",
     15: "gaming",
@@ -67,7 +67,12 @@ tweet_categories = {
     51: "NASA",
     52: "elon musk",
     53: "cool",
-    54: "sweet"
+    54: "sweet",
+    55: "war",
+    56: "rocket",
+    57: "fan",
+    58: "famous",
+    59: "favorite"
 }
 
 # Twitter API v1.1 Authorization with keys from Secrets.py
