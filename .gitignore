@@ -1,8 +1,6 @@
 # Secrets and Data
 __authsecrets__.py
-tweet_data/training/
-tweet_data/training/nn_tweet_data.json
-tweet_data/training/nn_tweet_data_processed.json
+tweet_data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

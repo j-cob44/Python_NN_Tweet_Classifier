@@ -5,6 +5,7 @@ import json
 import numpy as np
 import re
 import tweepy
+import os
 
 from __authsecrets__ import secret
 
@@ -114,17 +115,30 @@ def analyze_dataset(path):
 
 # Grab a tweet by ID
 def grab_tweet(id):
-    return api.get_status(id, tweet_mode='extended')
+    try:
+        tweet = api.get_status(id, tweet_mode='extended')
+    except:
+        raise Exception("Error grabbing tweet.")
+    
+    # Skip Retweets
+    if tweet.retweeted or 'RT @' in tweet.full_text:
+        raise Exception("Tweet is a Retweet.")
+    
+    tweet = tweet.full_text.replace("\n", " ")
+
+    return tweet
 
 # Grab and process a single tweet from twitter
 def grab_processed_tweet(id):
     # Get Tweet
-    status = api.get_status(id, tweet_mode='extended')
+    try:
+        status = api.get_status(id, tweet_mode='extended')
+    except:
+        raise Exception("Error grabbing tweet.")
 
     # Skip Retweets
     if status.retweeted or 'RT @' in status.full_text:
-        print("Tweet is a Retweet, skipping...")
-        return None;
+        raise Exception("Tweet is a Retweet.")
     
     tweet = status.full_text.replace("\n", " ")
 
@@ -172,8 +186,7 @@ def process_tweet_array_for_nn(tweets):
 
     return tweets
 
-
-# Final processing Single Tweet for Neural Network
+# Final processing of a Single Tweet for Neural Network
 def process_single_tweet_for_nn(tweet):
     # Convert ' ' to '`', '#' to '{', and '@' to '|' so when subtracted by 96, they will be 0, 27, and 28 respectively
     for i in range(len(tweet)):
@@ -195,8 +208,24 @@ def process_single_tweet_for_nn(tweet):
 
     return tweet
 
-# Run Preprocessing
-#preprocess_tweet_data("data/nn_tweet_data.json", "data/nn_tweet_data_processed.json")
+# Add a tweet to the dataset
+def add_tweet_by_id(tweet_id, category, dataset_path):
+    # Get Tweets from Twitter API
+    try:
+        # Get Tweet
+        status_text = grab_tweet(tweet_id)
 
-# Run Analysis
-#analyze_dataset("data/nn_tweet_data_processed.json")
+        new_tweet = [status_text, category]
+
+        tweets = []
+        if os.path.exists(dataset_path):
+            tweets = load_json_file(dataset_path)
+
+        tweets.append(new_tweet)
+
+        save_json_file(tweets, dataset_path)
+
+        return 1   
+    except:
+        print("Error submitting Tweet to submission set.")
+        return 0

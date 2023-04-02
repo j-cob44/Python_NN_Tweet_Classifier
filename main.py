@@ -1,71 +1,145 @@
-# Main.py - Main File for Neural Network
+# Main.py - Server Handling for Neural Network using BaseHTTPRequestHandler
 # Jacob Burton 2023
 
-import numpy as np
+# Constants
+ADDRESS = '10.0.0.238'
+PORT = 8080
 
-from model import *
+import os
+
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse
 from twitter_data import *
+from model_actions import *
 
-# Creation of Dataset and Final Data Manipulation
-# Preprocessing of Data
-preprocess_tweet_data("tweet_data/training/nn_tweet_data.json", "tweet_data/training/nn_tweet_data_processed.json")
+# Http server handling
+class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
+    # GET Requests
+    def do_GET(self):
+        # Split Path by / to get route
+        route = self.path.split('/')
+        #print(route) # debug
 
-# X stands for Actual Training Dataset
-X, y = create_tweet_datasets('tweet_data/training/nn_tweet_data_processed.json')
+        # File Requested
+        permitted_extensions = ['.html','.png','.svg','.jpg', '.js', '.json', '.css', '.ico'] # Allowed File types
+        file_request = False
+        if os.path.splitext(self.path)[1] in permitted_extensions:
+            file_request = True
 
-# Randomly shuffle the data
-keys = np.array(range(X.shape[0]))
-np.random.shuffle(keys)
-X = X[keys]
-y = y[keys]
+        # Set the path to index.html if the path is empty
+        if (self.path == '/') or file_request:
+            if (self.path == '/'):
+                self.path = '/index.html'
+            
+            # Try to open the file
+            try:
+                # Parse Path
+                parsed_path = urlparse(self.path)
+                file_path = './www/' + parsed_path.path
 
-X = process_tweet_array_for_nn(X)
+                # Open the file
+                file = open(file_path, 'rb')
+            except IOError:
+                self.send_error(404, 'File Not Found')
+                return
+            
+            # Send response
+            self.send_response(200)
+            self.end_headers()
 
-##########################################################
-# Creation and Training of Neural Network Model
-model = Model()
+            # Send the file
+            self.wfile.write(file.read())
+            file.close()
+            
+            return
+        # /tweet/<id> - Get Tweet
+        elif route[1] == 'tweet':
+            # Get the tweet
+            tweet_id = route[2]
+            try:
+                tweet_data = grab_tweet(tweet_id)
+            except Exception as e:
+                result = (repr(e).encode('utf-8'))
+                self.send_response(404, result)
+                self.end_headers()
+                return
 
-# Adding Layers to Model
-model.add(Layer_Dense(280, 128))
-model.add(Activation_ReLU())
-model.add(Layer_Dense(128, 128))
-model.add(Activation_ReLU())
-model.add(Layer_Dense(128, 2))
-model.add(Activation_Softmax())
+            # Decode from latin-1 to utf-8
+            result = tweet_data.encode('latin-1', 'ignore').decode('utf-8')
 
-# Set Model's Loss, Optimizer, and Accuracy Functions
-model.set(
-    loss = Loss_CategoricalCrossEntropy(),
-    optimizer = Optimizer_Adam(decay=1e-3),
-    accuracy = Accuracy_Categorical()
-)
+            # Send the result  
+            self.send_response(200, result)
+            self.end_headers()
+            return
+        # /evaluate/<id> - Evaluate Tweet on the Network
+        elif route[1] == 'evaluate':      
+            # Load the Model
+            model = load_model("models/trained_model1.model")
 
-# Finalize the Model
-model.finalize()
+            # Get the tweet and evaluate it
+            tweet_id = route[2]
+            try:
+                confidence_percent, prediction = evaluate_tweet(model, tweet_id)
+            except Exception as e:
+                result = (repr(e).encode('utf-8'))
+                self.send_response(404, result)
+                self.end_headers()
+                return
 
-# Train the Model
-model.train(X,y, iterations=10, batch_size=25, print_every=1)#, validation_data=(X_test, y_test))
+            # Tweet Found, parse result
+            result = str(f'{confidence_percent:.3f}%' + "/" + prediction)
 
-##########################################################
-# Evaluate on a single tweet
-tweet_id = input('Enter a tweet ID: ')
-tweet = grab_processed_tweet(tweet_id)
+            # Send the result
+            self.send_response(200, result)
+            self.end_headers()
+            return
+        else:
+            self.send_error(404, 'URI Not Found')
+            return
+        
+    # POST Requests
+    def do_POST(self):
+        # Split Path by / to get route
+        route = self.path.split('/')
+        print(route) # debug
 
-# Process Tweet For Neural Network Input
-tweet = process_single_tweet_for_nn(tweet)
+        # /submit/<id>/<category> - Submit Tweet to be trained in the model
+        if route[1] == 'submit':  
+            # Get the tweet
+            tweet_id = route[2]
+            category = route[3]
+            try:
+                # Submit tweet to Submission Dataset
+                result = add_tweet_by_id(tweet_id, category, "tweet_data/submissions/submitted_data.json")
+                if result == 1:
+                    self.send_response(200, "Success")
+                    self.end_headers()
+                    return
+                else:
+                    self.send_response(404, "Error")
+                    self.end_headers()
+                return
+            except Exception as e:
+                result = (repr(e).encode('utf-8'))
+                self.send_response(404, result)
+                self.end_headers()
+                return
+            
+            
+            
 
-# Make Prediction on Tweet
-confidences = model.predict(tweet)
+# Run the server
+def run():
+    print('Starting server...')
+    server_address = (ADDRESS, PORT)
+    httpd = HTTPServer(server_address, HTTPServer_RequestHandler)
+    print('Running server on port %s' % PORT)
 
-# Get Prediction from Confidence Level
-predictions = model.output_layer_activation.predictions(confidences)
+    # Try run server until keyboard interrupt
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    httpd.server_close()
 
-# Print Tweet
-raw_tweet = grab_tweet(tweet_id)
-tweet_text = raw_tweet.full_text.replace("\n", " ")
-print("\n" + tweet_text + "\n")
-
-# Get Category and Print
-for prediction in predictions:
-    highest_confidence_as_percent = np.max(confidences) * 100
-    print("Network is", f'{highest_confidence_as_percent:.3f}%', "confident this tweet is", nn_data_categories[prediction])
+run()
