@@ -1,6 +1,6 @@
 # Secrets and Data
 __authsecrets__.py
-TwitterData/data/
+tweet_data/training/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
