@@ -93,16 +93,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_response(200, result)
             self.end_headers()
             return
-        else:
-            self.send_error(404, 'URI Not Found')
-            return
-        
-    # POST Requests
-    def do_POST(self):
-        # Split Path by / to get route
-        route = self.path.split('/')
-        print(route) # debug
-
         # /submit/<id>/<category> - Submit Tweet to be trained in the model
         if route[1] == 'submit':  
             # Get the tweet
@@ -124,9 +114,9 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_response(404, result)
                 self.end_headers()
                 return
-            
-            
-            
+        else:
+            self.send_error(404, 'URI Not Found')
+            return      
 
 # Run the server
 def run():
