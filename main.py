@@ -5,6 +5,7 @@
 ADDRESS = '10.0.0.238'
 PORT = 8080
 NN_MODEL_PATH = 'models/trained_model1.model'
+SUBMISSION_PATH = 'tweet_data/submissions/submitted_data.json'
 
 import os
 
@@ -101,7 +102,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             category = route[3]
             try:
                 # Submit tweet to Submission Dataset
-                result = add_tweet_by_id(tweet_id, category, "tweet_data/submissions/submitted_data.json")
+                result = add_tweet_by_id(tweet_id, category, SUBMISSION_PATH)
                 if result == 1:
                     self.send_response(200, "Success")
                     self.end_headers()
@@ -115,9 +116,66 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
                 self.send_response(404, result)
                 self.end_headers()
                 return
+        
         else:
             self.send_error(404, 'URI Not Found')
             return      
+
+    # POST Requests
+    def do_POST(self):
+        # Split Path by / to get route
+        route = self.path.split('/')
+        #print(route) # debug
+
+        # /text/- Evaluate Text on the Network
+        if route[1] == 'text':
+            # Load the Model
+            model = load_model(NN_MODEL_PATH)
+
+            # Accept JSON
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            post_data = json.loads(post_data)
+
+            try:
+                confidence_percent, prediction = evaluate_text(model, post_data['text'])
+            except Exception as e:
+                result = (repr(e).encode('utf-8'))
+                self.send_response(404, result)
+                self.end_headers()
+                return
+
+            # Get Result Info
+            result = str(f'{confidence_percent:.3f}%' + "/" + prediction)
+
+            # Send the result
+            self.send_response(200, result)
+            self.end_headers()
+            return
+        # /textsubmission/<category> - Submit Text to be trained in the model
+        elif route[1] == 'textsubmission':
+            category = route[2]
+
+            # Accept JSON
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            post_data = json.loads(post_data)
+
+            try:
+                add_text_submission(post_data['text'], category, SUBMISSION_PATH)
+            except Exception as e:
+                result = (repr(e).encode('utf-8'))
+                self.send_response(404, "Error")
+                self.end_headers()
+                return
+
+            # Send the result
+            self.send_response(200, "Success")
+            self.end_headers()
+            return
+        else:
+            self.send_error(404, 'URI Not Found')
+            return
 
 # Run the server
 def run():

@@ -232,7 +232,45 @@ def add_tweet_by_id(tweet_id, category, dataset_path):
     except:
         print("Error submitting Tweet to submission set.")
         return 0
-    
+
+# Process Text for Neural Network Input - Input as string, output as list of characters
+def process_text_for_nn(text):
+    # Process text For Neural Network Input
+    text = text.replace("\n", " ")
+
+    # Remove emoji's from tweets
+    text = text.encode('ascii', 'ignore').decode('ascii')
+
+    # Use Regex to remove entire link from tweets
+    text = re.sub(r'http\S+', '', text)
+
+    # Set all characters to lowercase
+    text = text.lower()
+
+    # Remove all double spaces
+    text = text.replace("  ", " ")
+
+    # If tweet is not 280 characters long, add spaces to end of tweet
+    if len(text) < 280:
+        text = text + (" " * (280 - len(text)))
+
+    # Turn string into list of characters
+    text = list(text)
+
+    return text
+
+# Add a text based submission to a dataset
+def add_text_submission(text, category, dataset_path):
+    new_tweet = [text, int(category)]
+
+    tweets = []
+    if os.path.exists(dataset_path):
+        tweets = load_json_file(dataset_path)
+
+    tweets.append(new_tweet)
+
+    save_json_file(tweets, dataset_path)
+
 # Combine two datasets
 def combine_tweet_datasets(dataset1_path, dataset2_path, new_dataset_path):
     # Initialize Datasets

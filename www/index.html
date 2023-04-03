@@ -11,16 +11,30 @@
     <body class="d-flex flex-column h-100 bg-dark-subtle">
         <div class="container text-center">
             <div class="row justify-content-md-center pt-5 ">
-                <div class="col-8"><br><br></div>
-                <div class="col-8 border rounded bg-light m-1 p-2">
+                <div class="col-7"><br><br></div>
+                <div class="col-7 border rounded bg-light m-1 p-2">
                     <h1>Python Neural Network Tweet Classifier</h1>
                     <p>Enter a tweet URL to evaluate the tweet's sentiment! The network will try to evaluate if the tweet is Negative or Positive.</p>
 
                     <br>
-
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="Enter Tweet URL" aria-label="Enter Tweet URL" aria-describedby="button-addon2" id="tweetURL" name="tweetURL" value="">
-                        <button class="btn btn-primary btn-outline-light-subtle" type="button" id="button-addon2" onclick="submitEvaluationByUrl()">Evaluate Tweet</button>
+                    <div class="row justify-content-md-center">
+                        <div class="col-10">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" placeholder="Enter Tweet URL" aria-label="Enter Tweet URL" aria-describedby="button-addon2" id="tweetURL" name="tweetURL" value="">
+                                <button class="btn btn-primary btn-outline-light-subtle" type="button" id="button-addon2" onclick="submitEvaluationByUrl()">Evaluate Tweet</button>
+                            </div>
+                        </div>
+                        <div class="col-10">
+                            <p> - or -</p>
+                        </div>
+                        <div class="col-11">
+                            <textarea class="form-control" name="textarea_submission" id="textarea_submission" maxlength="280" rows="7" placeholder='Type a "tweet" here'></textarea>
+                            <div class="text-end" id="character_counts">
+                                <span id="current_count">0</span>
+                                <span id="max_count">/ 280</span>
+                            </div>
+                            <button class="btn btn-primary btn-outline-light-subtle" type="button" id="text_submit_button" onclick="submitEvaluationByText()">Evaluate Text</button>
+                        </div>
                     </div>
                     
                     <br>
@@ -67,7 +81,7 @@
                                         <input type="radio" class="btn-check" name="submission_tweetCategory" id="tweet_Cat2" autocomplete="off" value="1">
                                         <label class="btn btn-danger btn-outline-dark-subtle" for="tweet_Cat2">Negative Tweet</label>
                                     </div>
-                                    <button type="button" class="btn btn-primary" id="tweet_sub_button" onclick="submitTrainingData()">Submit</button>
+                                    <button type="button" class="btn btn-primary" id="tweet_sub_button" onclick="">Submit</button>
                                 </form>
                             </div>
                         </div>

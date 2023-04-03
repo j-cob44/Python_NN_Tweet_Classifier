@@ -24,7 +24,6 @@ def create_dataset_and_process_data(path):
 
     return X, y
 
-##########################################################
 # Creation of Neural Network Model
 def create_model():
     model = Model()
@@ -49,7 +48,6 @@ def create_model():
 
     return model
 
-##########################################################
 # Train/Retrain model
 def train_model(model, X, y, iterations=10, batch_size=25, print_every=1):
     # Train the Model
@@ -57,18 +55,15 @@ def train_model(model, X, y, iterations=10, batch_size=25, print_every=1):
 
     return model
 
-##########################################################
 # Save model
 def save_model(model, path):
     model.save(path)
 
-##########################################################
 # Load model
 def load_model(path):
     model = Model.load(path)
     return model
 
-##########################################################
 # Evaluate on a single tweet
 def evaluate_tweet(model, tweet_id):
     try:
@@ -89,6 +84,53 @@ def evaluate_tweet(model, tweet_id):
     #raw_tweet = grab_tweet(tweet_id)
     #tweet_text = raw_tweet.full_text.replace("\n", " ")
     #print("\n" + tweet_text + "\n")
+
+    # Get Category and Print
+    for prediction in predictions:
+        highest_confidence_as_percent = np.max(confidences) * 100
+        #print("Network is", f'{highest_confidence_as_percent:.3f}%', "confident this tweet is", nn_data_categories[prediction])
+    
+    return highest_confidence_as_percent, nn_data_categories[prediction]
+
+# Process Text for Neural Network Input - Input as string, output as list of characters
+def process_text_for_nn(text):
+    # Process text For Neural Network Input
+    text = text.replace("\n", " ")
+
+    # Remove emoji's from tweets
+    text = text.encode('ascii', 'ignore').decode('ascii')
+
+    # Use Regex to remove entire link from tweets
+    text = re.sub(r'http\S+', '', text)
+
+    # Set all characters to lowercase
+    text = text.lower()
+
+    # Remove all double spaces
+    text = text.replace("  ", " ")
+
+    # If tweet is not 280 characters long, add spaces to end of tweet
+    if len(text) < 280:
+        text = text + (" " * (280 - len(text)))
+
+    # Turn string into list of characters
+    text = list(text)
+
+    return text
+
+# Evaluate text in the Neural Network
+def evaluate_text(model, text):
+    # Process Text For Neural Network Input
+    text = process_text_for_nn(text)
+
+    # Process "Tweet" for Neural Network Input
+    text = process_single_tweet_for_nn(text)
+
+    # Make Prediction on Text
+    confidences = model.predict(text)
+
+    # Get Prediction from Confidence Level
+    predictions = model.output_layer_activation.predictions(confidences)
 
     # Get Category and Print
     for prediction in predictions:
