@@ -63,12 +63,15 @@ def preprocess_tweet_data(path, new_path=None):
     # Sort Tweets by Category (Positive, Negative)
     tweets.sort(key=lambda x: x[1])
 
+    # Remove Duplicate Tweets
+    for i in range(len(tweets) - 1):
+        for j in range(i + 1, len(tweets)):
+            if tweets[i][0] == tweets[j][0]:
+                tweets.pop(j)
+                break; 
+
     # Iterate through Tweets
     for i in range(len(tweets)):
-        # If not the last tweet, Check for duplicates and remove them
-        if i != (len(tweets) - 1) and tweets[i][0] == tweets[i + 1][0]:
-            tweets.pop(i)
-
         # Remove emoji's from tweets
         tweets[i][0] = tweets[i][0].encode('ascii', 'ignore').decode('ascii')
 
@@ -215,7 +218,7 @@ def add_tweet_by_id(tweet_id, category, dataset_path):
         # Get Tweet
         status_text = grab_tweet(tweet_id)
 
-        new_tweet = [status_text, category]
+        new_tweet = [status_text, int(category)]
 
         tweets = []
         if os.path.exists(dataset_path):
@@ -229,3 +232,29 @@ def add_tweet_by_id(tweet_id, category, dataset_path):
     except:
         print("Error submitting Tweet to submission set.")
         return 0
+    
+# Combine two datasets
+def combine_tweet_datasets(dataset1_path, dataset2_path, new_dataset_path):
+    # Initialize Datasets
+    dataset1 = []
+    dataset2 = []
+    combined_dataset = []
+
+    # Load Datasets
+    try:
+        dataset1 = load_json_file(dataset1_path)
+    except:
+        print("Error loading dataset 1.")
+        return
+    
+    try:
+        dataset2 = load_json_file(dataset2_path)
+    except:
+        print("Error loading dataset 2.")
+        return
+
+    # Combine Datasets
+    combined_dataset = dataset1 + dataset2
+
+    # Save Combined Dataset
+    save_json_file(combined_dataset, new_dataset_path)
