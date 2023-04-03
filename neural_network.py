@@ -14,20 +14,24 @@ while continue_actions:
         user_confirmation = input("Are you sure you want to train a new model? (y/n): ")
         if user_confirmation == "y":
             file_name = input("What would you like to name the model? ")
+            data_set = input("What is the file name of the dataset you would like to train the model on? ")
             model = create_model()
-            X, y = create_dataset_and_process_data()
+            X, y = create_dataset_and_process_data(data_set)
             model = train_model(model, X, y, iterations=10, batch_size=25, print_every=1)
             model.save('models/' + file_name + '.model')
+            save_model_data(model, 'models/' + file_name + '_info.json')
         else:
             continue
     # Retrain Model
     elif user_action == "r":
         file_name = input("What is the file name of the model you would like to retrain? ")
+        data_set = input("What is the file name of the dataset you would like to train the model on? ")
         try:
-            model = Model.load('models/' + file_name + '.model')
-            X, y = create_dataset_and_process_data()
+            model = Model.load('models/' + file_name + '.model') 
+            X, y = create_dataset_and_process_data(data_set)
             model = train_model(model, X, y, iterations=10, batch_size=25, print_every=1)
             model.save('models/' + file_name + '.model')
+            save_model_data(model, 'models/' + file_name + '_info.json')
         except:
             print("Model not found!")
             continue

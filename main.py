@@ -4,6 +4,7 @@
 # Constants
 ADDRESS = '10.0.0.238'
 PORT = 8080
+NN_MODEL_PATH = 'models/trained_model1.model'
 
 import os
 
@@ -74,7 +75,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         # /evaluate/<id> - Evaluate Tweet on the Network
         elif route[1] == 'evaluate':      
             # Load the Model
-            model = load_model("models/trained_model1.model")
+            model = load_model(NN_MODEL_PATH)
 
             # Get the tweet and evaluate it
             tweet_id = route[2]

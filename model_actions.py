@@ -7,12 +7,12 @@ from model import *
 from twitter_data import *
 
 # Creation of Dataset and Final Data Manipulation
-def create_dataset_and_process_data():
+def create_dataset_and_process_data(path):
     # Preprocessing of Data
-    preprocess_tweet_data("tweet_data/training/nn_tweet_data.json", "tweet_data/training/nn_tweet_data_processed.json")
+    preprocess_tweet_data("tweet_data/" + path + ".json", "tweet_data/" + path + "_processed.json")
 
     # X stands for Actual Training Dataset
-    X, y = create_tweet_datasets('tweet_data/training/nn_tweet_data_processed.json')
+    X, y = create_tweet_datasets('tweet_data/'+ path + '_processed.json')
 
     # Randomly shuffle the data
     keys = np.array(range(X.shape[0]))
@@ -53,7 +53,7 @@ def create_model():
 # Train/Retrain model
 def train_model(model, X, y, iterations=10, batch_size=25, print_every=1):
     # Train the Model
-    model.train(X,y, iterations=10, batch_size=25, print_every=1)#, validation_data=(X_test, y_test))
+    model.train(X,y, iterations=iterations, batch_size=batch_size, print_every=print_every)#, validation_data=(X_test, y_test))
 
     return model
 
@@ -97,3 +97,14 @@ def evaluate_tweet(model, tweet_id):
     
     return highest_confidence_as_percent, nn_data_categories[prediction]
 
+# Save Model data to file
+def save_model_data(model, path):
+    data = {
+        "loss_function": model.loss.__class__.__name__,
+        "optimizer_function": model.optimizer.__class__.__name__,
+        "accuracy_function": model.accuracy.__class__.__name__,
+        "calculated_accuracy": model.accuracy.calculate_accumulated()
+    }
+
+    with open(path, "w") as f:
+        json.dump(data, f)

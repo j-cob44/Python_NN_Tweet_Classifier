@@ -112,8 +112,6 @@ function submitTrainingData(){
         return;
     }
     var tweetCategory = document.querySelector('input[name="submission_tweetCategory"]:checked').value;
-    
-    console.log(tweetCategory)
 
     if (tweetCategory != 0 && tweetCategory != 1) {
         return

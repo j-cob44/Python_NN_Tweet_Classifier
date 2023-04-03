@@ -1,0 +1,1 @@
+{"loss_function": "Loss_CategoricalCrossEntropy", "optimizer_function": "Optimizer_Adam", "accuracy_function": "Accuracy_Categorical", "calculated_accuracy": 0.8909090909090909}

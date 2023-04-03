@@ -11,7 +11,7 @@ from __authsecrets__ import secret
 from twitter_data import nn_data_categories
 
 # Data path (Change when creating different datasets)
-data_path = "tweet_data/training/nn_tweet_data.json"
+data_path = "tweet_data/training/nn_combined.json"
 
 # Twitter API v1.1 Authorization with keys from Secrets.py
 auth = tweepy.OAuth2BearerHandler(secret.bearer_token)

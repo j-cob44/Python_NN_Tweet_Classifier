@@ -9,7 +9,7 @@ from __authsecrets__ import secret
 from twitter_data import nn_data_categories
 
 # Data path (Change when creating different datasets)
-data_path = "tweet_data/training/nn_tweet_data.json"
+data_path = "tweet_data/training/nn_combined.json"
 
 # Dictionary for Tweet Categories to Search
 tweet_categories = {
@@ -72,7 +72,10 @@ tweet_categories = {
     56: "rocket",
     57: "fan",
     58: "famous",
-    59: "favorite"
+    59: "favorite",
+    60: "republican",
+    61: "democrat",
+    62: "politician"
 }
 
 # Twitter API v1.1 Authorization with keys from Secrets.py
