@@ -4,14 +4,14 @@
 # Constants
 ADDRESS = '10.0.0.238'
 PORT = 8080
-NN_MODEL_PATH = 'models/trained_model1.model'
+NN_MODEL_PATH = 'models/combined_model.model'
 SUBMISSION_PATH = 'tweet_data/submissions/submitted_data.json'
 
 import os
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
-from twitter_data import *
+from tweet_data import *
 from model_actions import *
 
 # Http server handling

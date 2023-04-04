@@ -2,45 +2,30 @@
 # Jacob Burton 2023
 
 import numpy as np
+import json
 
 from model import *
-from twitter_data import *
-
-# Creation of Dataset and Final Data Manipulation
-def create_dataset_and_process_data(path):
-    # Preprocessing of Data
-    preprocess_tweet_data("tweet_data/" + path + ".json", "tweet_data/" + path + "_processed.json")
-
-    # X stands for Actual Training Dataset
-    X, y = create_tweet_datasets('tweet_data/'+ path + '_processed.json')
-
-    # Randomly shuffle the data
-    keys = np.array(range(X.shape[0]))
-    np.random.shuffle(keys)
-    X = X[keys]
-    y = y[keys]
-
-    X = process_tweet_array_for_nn(X)
-
-    return X, y
+from tweet_data import *
 
 # Creation of Neural Network Model
 def create_model():
     model = Model()
 
     # Adding Layers to Model
-    model.add(Layer_Dense(280, 128))
+    model.add(Layer_Dense(19600, 256)) # 19600 is 280 (length of tweet) * 70 (one-hot vector of characters)
     model.add(Activation_ReLU())
-    model.add(Layer_Dense(128, 128))
+    model.add(Layer_Dense(256, 128))
     model.add(Activation_ReLU())
-    model.add(Layer_Dense(128, 2))
-    model.add(Activation_Softmax())
+    model.add(Layer_Dense(128, 64))
+    model.add(Activation_ReLU())
+    model.add(Layer_Dense(64, 1))
+    model.add(Activation_Sigmoid())
 
     # Set Model's Loss, Optimizer, and Accuracy Functions
     model.set(
-        loss = Loss_CategoricalCrossEntropy(),
-        optimizer = Optimizer_Adam(decay=1e-3),
-        accuracy = Accuracy_Categorical()
+        loss = Loss_BinaryCrossEntropy(),
+        optimizer = Optimizer_Adam(learning_rate=0.005, decay=1e-3),
+        accuracy = Accuracy_Binary()
     )
 
     # Finalize the Model
@@ -49,104 +34,120 @@ def create_model():
     return model
 
 # Train/Retrain model
-def train_model(model, X, y, iterations=10, batch_size=25, print_every=1):
-    # Train the Model
-    model.train(X,y, iterations=iterations, batch_size=batch_size, print_every=print_every)#, validation_data=(X_test, y_test))
+def train_model(model, X, y, X_val=None, y_val=None, iterations=10, batch_size=64, print_every=100):
+    # Get time
+    start_time = time.time()
 
-    return model
+    if X_val is not None and y_val is not None:
+        # Train and Validate the Model
+        training_data = model.train(X,y, iterations=iterations, batch_size=batch_size, print_every=print_every, validation_data=(X_val, y_val))
+    else:
+        # Only Train the Model
+        training_data = model.train(X,y, iterations=iterations, batch_size=batch_size, print_every=print_every)
 
-# Save model
+    # Get time
+    end_time = time.time()
+
+    analysis_data = {
+        "time_to_train": end_time - start_time,
+        "loss_function": model.loss.__class__.__name__,
+        "optimizer": model.optimizer.__class__.__name__,
+        "accuracy_function": model.accuracy.__class__.__name__,
+        "overall_accuracy": model.accuracy.calculate_accumulated(),
+        "training_data": training_data
+    }
+
+    return model, analysis_data
+
+# Save model to file
 def save_model(model, path):
     model.save(path)
 
-# Load model
+# Load model from file
 def load_model(path):
     model = Model.load(path)
     return model
 
+# Save training data to file
+def save_training_data(training_data, path):
+    with open(path, "w") as f:
+        json.dump(training_data, f)
+
 # Evaluate on a single tweet
 def evaluate_tweet(model, tweet_id):
-    try:
-        tweet = grab_processed_tweet(tweet_id)
-    except Exception as e:
-        raise e
+    # try:
+    #     tweet = grab_processed_tweet(tweet_id)
+    # except Exception as e:
+    #     raise e
 
-    # Process Tweet For Neural Network Input
-    tweet = process_single_tweet_for_nn(tweet)
+    # # Process Tweet For Neural Network Input
+    # tweet = process_single_tweet_for_nn(tweet)
 
-    # Make Prediction on Tweet
-    confidences = model.predict(tweet)
+    # # Make Prediction on Tweet
+    # confidences = model.predict(tweet)
 
-    # Get Prediction from Confidence Level
-    predictions = model.output_layer_activation.predictions(confidences)
+    # # Get Prediction from Confidence Level
+    # predictions = model.output_layer_activation.predictions(confidences)
 
-    # # Print Tweet
-    #raw_tweet = grab_tweet(tweet_id)
-    #tweet_text = raw_tweet.full_text.replace("\n", " ")
-    #print("\n" + tweet_text + "\n")
+    # # # Print Tweet
+    # #raw_tweet = grab_tweet(tweet_id)
+    # #tweet_text = raw_tweet.full_text.replace("\n", " ")
+    # #print("\n" + tweet_text + "\n")
 
-    # Get Category and Print
-    for prediction in predictions:
-        highest_confidence_as_percent = np.max(confidences) * 100
-        #print("Network is", f'{highest_confidence_as_percent:.3f}%', "confident this tweet is", nn_data_categories[prediction])
+    # # Get Category and Print
+    # for prediction in predictions:
+    #     highest_confidence_as_percent = np.max(confidences) * 100
+    #     #print("Network is", f'{highest_confidence_as_percent:.3f}%', "confident this tweet is", nn_data_categories[prediction])
     
-    return highest_confidence_as_percent, nn_data_categories[prediction]
+    # return highest_confidence_as_percent, nn_data_categories[prediction]
+    pass
 
 # Process Text for Neural Network Input - Input as string, output as list of characters
 def process_text_for_nn(text):
-    # Process text For Neural Network Input
-    text = text.replace("\n", " ")
+    # # Process text For Neural Network Input
+    # text = text.replace("\n", " ")
 
-    # Remove emoji's from tweets
-    text = text.encode('ascii', 'ignore').decode('ascii')
+    # # Remove emoji's from tweets
+    # text = text.encode('ascii', 'ignore').decode('ascii')
 
-    # Use Regex to remove entire link from tweets
-    text = re.sub(r'http\S+', '', text)
+    # # Use Regex to remove entire link from tweets
+    # text = re.sub(r'http\S+', '', text)
 
-    # Set all characters to lowercase
-    text = text.lower()
+    # # Set all characters to lowercase
+    # text = text.lower()
 
-    # Remove all double spaces
-    text = text.replace("  ", " ")
+    # # Remove all double spaces
+    # text = text.replace("  ", " ")
 
-    # If tweet is not 280 characters long, add spaces to end of tweet
-    if len(text) < 280:
-        text = text + (" " * (280 - len(text)))
+    # # If tweet is not 280 characters long, add spaces to end of tweet
+    # if len(text) < 280:
+    #     text = text + (" " * (280 - len(text)))
 
-    # Turn string into list of characters
-    text = list(text)
+    # # Turn string into list of characters
+    # text = list(text)
 
-    return text
+    # return text
+    pass
 
 # Evaluate text in the Neural Network
 def evaluate_text(model, text):
-    # Process Text For Neural Network Input
-    text = process_text_for_nn(text)
+    # # Process Text For Neural Network Input
+    # text = process_text_for_nn(text)
 
-    # Process "Tweet" for Neural Network Input
-    text = process_single_tweet_for_nn(text)
+    # # Process "Tweet" for Neural Network Input
+    # text = process_single_tweet_for_nn(text)
 
-    # Make Prediction on Text
-    confidences = model.predict(text)
+    # # Make Prediction on Text
+    # confidences = model.predict(text)
 
-    # Get Prediction from Confidence Level
-    predictions = model.output_layer_activation.predictions(confidences)
+    # # Get Prediction from Confidence Level
+    # predictions = model.output_layer_activation.predictions(confidences)
 
-    # Get Category and Print
-    for prediction in predictions:
-        highest_confidence_as_percent = np.max(confidences) * 100
-        #print("Network is", f'{highest_confidence_as_percent:.3f}%', "confident this tweet is", nn_data_categories[prediction])
+    # # Get Category and Print
+    # for prediction in predictions:
+    #     highest_confidence_as_percent = np.max(confidences) * 100
+    #     #print("Network is", f'{highest_confidence_as_percent:.3f}%', "confident this tweet is", nn_data_categories[prediction])
     
-    return highest_confidence_as_percent, nn_data_categories[prediction]
+    # return highest_confidence_as_percent, nn_data_categories[prediction]
+    pass
 
-# Save Model data to file
-def save_model_data(model, path):
-    data = {
-        "loss_function": model.loss.__class__.__name__,
-        "optimizer_function": model.optimizer.__class__.__name__,
-        "accuracy_function": model.accuracy.__class__.__name__,
-        "calculated_accuracy": model.accuracy.calculate_accumulated()
-    }
-
-    with open(path, "w") as f:
-        json.dump(data, f)

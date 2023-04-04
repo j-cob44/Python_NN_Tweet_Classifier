@@ -146,6 +146,13 @@ class Model:
                 if validation_steps * batch_size < len(validation_data[0]):
                     validation_steps += 1
 
+        # Training data for analysis
+        analysis_data = {
+            "accuracy_history": [],
+            "loss_history": [],
+            "learning_rate_history": []
+        }
+
         # Training Loop
         for iteration in range(1, iterations+1):
             # Print Iteration Number
@@ -184,9 +191,14 @@ class Model:
                     self.optimizer.update_params(layer)
                 self.optimizer.post_update_params()
 
+                # Gather data for Analysis
+                analysis_data["accuracy_history"].append(accuracy)
+                analysis_data["loss_history"].append(loss)
+                analysis_data["learning_rate_history"].append(self.optimizer.current_learning_rate)
+
                 # Print a summary for the step
                 if not step % print_every or step == training_steps - 1:
-                    print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), " Step:", step, " Accuracy: ", f'{accuracy:.3f}', " Loss: ", f'{loss:.3f}', " Data_Loss: ", f'{data_loss:.3f}', " Reg_Loss: ", f'{regularization_loss:.3f}', " LearningRate: ", self.optimizer.current_learning_rate )
+                    print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), " Step:", step, " Accuracy: ", f'{accuracy:.3f}', " Loss: ", f'{loss:.3f}', "\n\t", "(Data_Loss: ", f'{data_loss:.3f}', "+ Reg_Loss: ", f'{regularization_loss:.3f})', " LearningRate: ", self.optimizer.current_learning_rate )
 
             # Calculate and Print Iteration Loss and Accuracy
             iteration_data_loss, iteration_regularization_loss = self.loss.calculate_accumulated(include_regularization=True)
@@ -197,7 +209,10 @@ class Model:
             print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Training Overall: ", " Accuracy: ", f'{iteration_accuracy:.3f}', " Loss: ", f'{iteration_loss:.3f}', " Data_Loss: ", f'{iteration_data_loss:.3f}', " Reg_Loss: ", f'{iteration_regularization_loss:.3f}', " LearningRate: ", self.optimizer.current_learning_rate )
 
         if validation_data is not None:
+            print("Validating Model")
             self.evaluate(*validation_data, batch_size=batch_size)
+        
+        return analysis_data
     
     # Evaluate the Model with a given dataset
     def evaluate(self, X_val, y_val, *, batch_size=None):

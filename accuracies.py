@@ -59,3 +59,13 @@ class Accuracy_Categorical(Accuracy):
         if len(y.shape) == 2:
             y = np.argmax(y, axis=1)
         return predictions == y
+    
+# Accuracy calculation class for Binary Accuracy
+class Accuracy_Binary(Accuracy):
+    # Initialization not needed for this accuracy class
+    def init(self, y):
+        pass
+
+    # Compares predictions to the ground truth values
+    def compare(self, predictions, y):
+        return predictions.round() == y

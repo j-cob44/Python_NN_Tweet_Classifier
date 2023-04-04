@@ -1,6 +1,7 @@
 # Secrets and Data
 __authsecrets__.py
 tweet_data/
+models/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
