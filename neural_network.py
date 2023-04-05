@@ -30,7 +30,17 @@ while continue_actions:
             X, y, X_val, y_val = create_tweet_datasets(full_t_path, full_v_path)
 
             # Create the model
-            model = create_model()
+            model = create_model(
+                hidden_layers=1, 
+                neurons=128, 
+                dropout=0.3, 
+                learning_rate=0.01, 
+                learning_decay=0.0001, 
+                weight_regularizer_l1=0, 
+                weight_regularizer_l2=0.0001,
+                bias_regularizer_l1=0,
+                bias_regularizer_l2=0.0001
+            )
 
             # Check if X is 3D
             if len(X.shape) == 3:
@@ -89,7 +99,7 @@ while continue_actions:
         training_path = input("tweet_data/")
         print("What is the file name of the validation dataset you would like to validate the model with? ")
         validation_path = input("tweet_data/")
-        print(""); # New Line only
+        print(""); # New Line 
 
         # Create the datasets
         full_t_path = "tweet_data/" + training_path
@@ -111,15 +121,16 @@ while continue_actions:
 
             print(""); # New Line for viewing pleasure
             perform_grid_search(parameter_save_path, X, y, X_val, y_val,
-                hidden_layers = [1, 2],  # Number of hidden layers
-                neurons = [64, 128, 256],  # Number of neurons in each hidden layer
-                dropouts = [0.1, 0.2, 0.25, 0.3],  # Dropout rate
-                learning_rates = [0.001, 0.01, 0.0001, 0.02],  # Learning rate
-                learning_decays = [1e-4, 5e-5, 1e-3, 1e-5, 5e-7],  # Learning rate decay
-                #weight_regularizers_l1 = [0.001, 0.01, 0.1],  # L1 weight regularization
-                #bias_regularizers_l1 = [0.001, 0.01, 0.1],  # L1 bias regularization
-                weight_regularizers_l2 = [1e-4, 5e-5, 1e-5],  # L2 weight regularization
-                bias_regularizers_l2 = [1e-4, 5e-5, 1e-5])  # L2 bias regularization
+                hidden_layers = [1, 2], # Number of hidden layers
+                neurons = [64, 128, 256], # Number of neurons in each hidden layer
+                dropouts = [0.1, 0.2, 0.25, 0.3], # Dropout rate
+                learning_rates = [0.001, 0.01, 0.0001, 0.02], # Learning rate
+                learning_decays = [1e-4, 5e-5, 1e-3, 1e-5, 5e-7], # Learning rate decay
+                #weight_regularizers_l1 = [0.001, 0.01, 0.1], # L1 weight regularization # broken?
+                #bias_regularizers_l1 = [0.001, 0.01, 0.1], # L1 bias regularization # broken?
+                weight_regularizers_l2 = [1e-4, 5e-5, 1e-5], # L2 weight regularization
+                bias_regularizers_l2 = [1e-4, 5e-5, 1e-5] # L2 bias regularization
+            )
         
     # Quit
     elif user_action == "q":
@@ -128,5 +139,4 @@ while continue_actions:
     else:
         print("Invalid Input!")
         
-    
 #########################################################

@@ -219,15 +219,14 @@ class Model:
         if validation_data is not None:
             if print_every != 0:
                 print("Validating Model")
-            validation_data = self.evaluate(*validation_data, batch_size=batch_size)#, print_summary=print_every)
-
-        analysis_data["validation_accuracy"] = validation_data["validation_accuracy"]
-        analysis_data["validation_loss"] = validation_data["validation_loss"]
+            validation_data = self.evaluate(*validation_data, batch_size=batch_size, print_summary=print_every)
+            analysis_data["validation_accuracy"] = validation_data["validation_accuracy"]
+            analysis_data["validation_loss"] = validation_data["validation_loss"]
         
         return analysis_data
     
     # Evaluate the Model with a given dataset
-    def evaluate(self, X_val, y_val, *, batch_size=None): #, print_summary=1):
+    def evaluate(self, X_val, y_val, *, batch_size=None, print_summary=1):
         # Default value if batch size is not set
         validation_steps = 1
 
@@ -267,8 +266,8 @@ class Model:
         validation_accuracy = self.accuracy.calculate_accumulated()
 
         # Print Validation Summary
-        #if print_summary != 0:
-        print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Validation, ", " Accuracy: ", f'{validation_accuracy:.3f}', " Loss: ", f'{validation_loss:.3f}')
+        if print_summary != 0:
+            print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Validation, ", " Accuracy: ", f'{validation_accuracy:.3f}', " Loss: ", f'{validation_loss:.3f}')
 
         validation_data = {
             "validation_accuracy": validation_accuracy,
