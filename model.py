@@ -148,6 +148,9 @@ class Model:
 
         # Training data for analysis
         analysis_data = {
+            "training_accuracy": None,
+            "validation_accuracy": None,
+            "validation_loss": None,
             "accuracy_history": [],
             "loss_history": [],
             "learning_rate_history": []
@@ -206,11 +209,16 @@ class Model:
             iteration_accuracy = self.accuracy.calculate_accumulated()
 
             # Print a summary for the iteration
-            print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Training Overall: ", " Accuracy: ", f'{iteration_accuracy:.3f}', " Loss: ", f'{iteration_loss:.3f}', " Data_Loss: ", f'{iteration_data_loss:.3f}', " Reg_Loss: ", f'{iteration_regularization_loss:.3f}', " LearningRate: ", self.optimizer.current_learning_rate )
+            print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Training Overall: ", " Accuracy: ", f'{iteration_accuracy:.3f}', " Loss: ", f'{iteration_loss:.3f}', "\n\t", "(Data_Loss: ", f'{iteration_data_loss:.3f}', " Reg_Loss: ", f'{iteration_regularization_loss:.3f})', " LearningRate: ", self.optimizer.current_learning_rate )
+
+        analysis_data["training_accuracy"] = self.accuracy.calculate_accumulated()
 
         if validation_data is not None:
             print("Validating Model")
-            self.evaluate(*validation_data, batch_size=batch_size)
+            validation_data = self.evaluate(*validation_data, batch_size=batch_size)
+
+        analysis_data["validation_accuracy"] = validation_data["validation_accuracy"]
+        analysis_data["validation_loss"] = validation_data["validation_loss"]
         
         return analysis_data
     
@@ -241,14 +249,14 @@ class Model:
                 batch_y = y_val[step*batch_size:(step+1)*batch_size]
 
             # Perform Forward Pass of all layers
-            output = self.forward(X_val, training=False)
+            output = self.forward(batch_X, training=False)
 
             # Calculate Loss
-            loss = self.loss.calculate(output, y_val)
+            self.loss.calculate(output, batch_y)
 
             # Get Predictions and calculate accuracy
             predictions = self.output_layer_activation.predictions(output)
-            accuracy = self.accuracy.calculate(predictions, y_val)
+            self.accuracy.calculate(predictions, batch_y)
 
         # Calculate and print Validation Loss and Accuracy
         validation_loss = self.loss.calculate_accumulated()
@@ -256,6 +264,12 @@ class Model:
 
         # Print Validation Summary
         print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Validation, ", " Accuracy: ", f'{validation_accuracy:.3f}', " Loss: ", f'{validation_loss:.3f}')
+
+        validation_data = {
+            "validation_accuracy": validation_accuracy,
+            "validation_loss": validation_loss
+        }
+        return validation_data
 
     # Make a Prediction on Given Data
     def predict(self, X, *, batch_size=None):

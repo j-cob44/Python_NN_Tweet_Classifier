@@ -3,11 +3,12 @@
 
 from model_actions import *
 from tweet_data import *
+from parameter_tuning import *
 
 # Based on User Action
 continue_actions = True
 while continue_actions:
-    user_action = input("What would you like to do? (t)rain, (r)etrain, (a)nalyze a model, (q)uit: ")
+    user_action = input("What would you like to do? (t)rain, (r)etrain, (a)nalyze a model, (h)yperparameter tune, (q)uit: ")
 
     # Train Model
     if user_action == "t":
@@ -18,6 +19,7 @@ while continue_actions:
             training_path = input("tweet_data/")
             print("What is the file name of the validation dataset you would like to validate the model with? ")
             validation_path = input("tweet_data/")
+            print("");
 
             # Create the datasets
             full_t_path = "tweet_data/" + training_path
@@ -38,7 +40,7 @@ while continue_actions:
             # Training Parameters
             epochs = 10
             batch_size = 64
-            print_every = 25
+            print_every = 20
 
             # Check if validation data is provided
             if X_val is not None and y_val is not None:
@@ -74,7 +76,50 @@ while continue_actions:
             continue
     # Analyze Model
     elif user_action == "a":
-        file_name = input("What is the file name of the dataset you would like to analyze? ")
+        print("What is the file name of the dataset you would like to analyze?")
+        file_name = input("models/")
+        print(""); # New Line
+
+        # Analyze and display stats
+        analyze_training_data("models/" + file_name)
+
+    # Automatic Hyperparameter Tuning
+    elif user_action == "h":
+        print("What is the file name of the training dataset you would like to train the model on? ")
+        training_path = input("tweet_data/")
+        print("What is the file name of the validation dataset you would like to validate the model with? ")
+        validation_path = input("tweet_data/")
+        print(""); # New Line only
+
+        # Create the datasets
+        full_t_path = "tweet_data/" + training_path
+        if validation_path == "":
+            print("No validation dataset provided. Validation dataset is required.")
+        else:
+            full_v_path = "tweet_data/" + validation_path
+            X, y, X_val, y_val = create_tweet_datasets(full_t_path, full_v_path)
+            
+            # Reshape 3D data to 2D
+            if len(X.shape) == 3:
+                X = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
+            if len(X_val.shape) == 3:
+                X_val = X_val.reshape(X_val.shape[0], X_val.shape[1] * X_val.shape[2])
+
+            print("\nWhere would you like to save the results to?")
+            save_path = input("parameter_data/")
+            parameter_save_path = "parameter_data/" + save_path
+
+            print(""); # New Line for viewing pleasure
+            perform_grid_search(parameter_save_path, X, y, X_val, y_val,
+                hidden_layers = [2, 3, 4],  # Number of hidden layers
+                neurons = [64, 128, 256],  # Number of neurons in each hidden layer
+                dropouts = [0.1, 0.2, 0.3],  # Dropout rate
+                learning_rates = [0.001, 0.01, 0.1],  # Learning rate
+                learning_decays = [1e-4, 1e-3, 1e-2],  # Learning rate decay
+                weight_regularizers_l1 = [0.001, 0.01, 0.1],  # L1 weight regularization
+                bias_regularizers_l1 = [0.001, 0.01, 0.1],  # L1 bias regularization
+                weight_regularizers_l2 = [0.001, 0.01, 0.1],  # L2 weight regularization
+                bias_regularizers_l2 = [0.001, 0.01, 0.1])  # L2 bias regularization
         
     # Quit
     elif user_action == "q":
