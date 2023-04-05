@@ -159,7 +159,8 @@ class Model:
         # Training Loop
         for iteration in range(1, iterations+1):
             # Print Iteration Number
-            print(time.strftime("[%H:%M:%S]", time.localtime(time.time())),"Iteration: ", iteration)
+            if print_every != 0:
+                print(time.strftime("[%H:%M:%S]", time.localtime(time.time())),"Iteration: ", iteration)
 
             # Reset Accumulated Values in Loss and Accuracy Objects
             self.loss.new_pass()
@@ -200,8 +201,9 @@ class Model:
                 analysis_data["learning_rate_history"].append(self.optimizer.current_learning_rate)
 
                 # Print a summary for the step
-                if not step % print_every or step == training_steps - 1:
-                    print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), " Step:", step, " Accuracy: ", f'{accuracy:.3f}', " Loss: ", f'{loss:.3f}', "\n\t", "(Data_Loss: ", f'{data_loss:.3f}', "+ Reg_Loss: ", f'{regularization_loss:.3f})', " LearningRate: ", self.optimizer.current_learning_rate )
+                if print_every != 0:
+                    if not step % print_every or step == training_steps - 1:
+                        print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), " Step:", step, " Accuracy: ", f'{accuracy:.3f}', " Loss: ", f'{loss:.3f}', "\n\t", "(Data_Loss: ", f'{data_loss:.3f}', "+ Reg_Loss: ", f'{regularization_loss:.3f})', " LearningRate: ", self.optimizer.current_learning_rate )
 
             # Calculate and Print Iteration Loss and Accuracy
             iteration_data_loss, iteration_regularization_loss = self.loss.calculate_accumulated(include_regularization=True)
@@ -209,13 +211,15 @@ class Model:
             iteration_accuracy = self.accuracy.calculate_accumulated()
 
             # Print a summary for the iteration
-            print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Training Overall: ", " Accuracy: ", f'{iteration_accuracy:.3f}', " Loss: ", f'{iteration_loss:.3f}', "\n\t", "(Data_Loss: ", f'{iteration_data_loss:.3f}', " Reg_Loss: ", f'{iteration_regularization_loss:.3f})', " LearningRate: ", self.optimizer.current_learning_rate )
+            if print_every != 0:
+                print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Training Overall: ", " Accuracy: ", f'{iteration_accuracy:.3f}', " Loss: ", f'{iteration_loss:.3f}', "\n\t", "(Data_Loss: ", f'{iteration_data_loss:.3f}', " Reg_Loss: ", f'{iteration_regularization_loss:.3f})', " LearningRate: ", self.optimizer.current_learning_rate )
 
         analysis_data["training_accuracy"] = self.accuracy.calculate_accumulated()
 
         if validation_data is not None:
-            print("Validating Model")
-            validation_data = self.evaluate(*validation_data, batch_size=batch_size)
+            if print_every != 0:
+                print("Validating Model")
+            validation_data = self.evaluate(*validation_data, batch_size=batch_size, print_summary=print_every)
 
         analysis_data["validation_accuracy"] = validation_data["validation_accuracy"]
         analysis_data["validation_loss"] = validation_data["validation_loss"]
@@ -223,7 +227,7 @@ class Model:
         return analysis_data
     
     # Evaluate the Model with a given dataset
-    def evaluate(self, X_val, y_val, *, batch_size=None):
+    def evaluate(self, X_val, y_val, *, batch_size=None, print_summary=1):
         # Default value if batch size is not set
         validation_steps = 1
 
@@ -263,7 +267,8 @@ class Model:
         validation_accuracy = self.accuracy.calculate_accumulated()
 
         # Print Validation Summary
-        print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Validation, ", " Accuracy: ", f'{validation_accuracy:.3f}', " Loss: ", f'{validation_loss:.3f}')
+        if print_summary != 0:
+            print(time.strftime("[%H:%M:%S]", time.localtime(time.time())), "Validation, ", " Accuracy: ", f'{validation_accuracy:.3f}', " Loss: ", f'{validation_loss:.3f}')
 
         validation_data = {
             "validation_accuracy": validation_accuracy,

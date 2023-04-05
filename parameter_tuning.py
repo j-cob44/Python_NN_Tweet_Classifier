@@ -13,7 +13,7 @@ def save_parameters(parameters, filename="parameter_data/test.json"):
 
 # Grid Search for Hyperparameter Tuning
 def perform_grid_search(param_file_path, X, y, X_val, y_val, 
-    iterations=10, batch_size=64, print_every=100, 
+    iterations=10, batch_size=64,
     hidden_layers=[2], 
     neurons=[128], 
     dropouts=[0.1], 
@@ -25,6 +25,7 @@ def perform_grid_search(param_file_path, X, y, X_val, y_val,
     bias_regularizers_l2=[0.01]):
 
     # Initialize Variables
+    current_parameter_set = 1
     best_accuracy = 0
     best_parameters = {}
 
@@ -44,6 +45,20 @@ def perform_grid_search(param_file_path, X, y, X_val, y_val,
                             for bias_regularizer_l1 in bias_regularizers_l1:
                                 for weight_regularizer_l2 in weight_regularizers_l2:
                                     for bias_regularizer_l2 in bias_regularizers_l2:
+                                        # Print Progress
+                                        print(time.strftime("[%H:%M:%S]", time.localtime(time.time())) +
+                                              " [Set #" + f'{current_parameter_set}' +
+                                              ", Hidden Layers: " + f'{hidden_layer}' + 
+                                              ", Neurons: " + f'{neuron}' + 
+                                              ", Dropout Rate: " +  f'{dropout}%' + 
+                                              ", Learning Rate: " +  f'{learning_rate}' +
+                                              ", Learning Rate Decay: " + f'{learning_decay}' + ',\n\t'
+                                              "Weight Regularization L1: " +  f'{weight_regularizer_l1}' +
+                                              ", Bias Regularization L1: " +  f'{weight_regularizer_l2}' +
+                                              ", Weight Regularization L2: " +  f'{weight_regularizer_l1}' +
+                                              ", Bias Regularization L2: " +  f'{bias_regularizer_l2}' +
+                                              "]")
+
                                         # Create Model
                                         model = create_model(
                                             hidden_layers=hidden_layer, 
@@ -57,7 +72,7 @@ def perform_grid_search(param_file_path, X, y, X_val, y_val,
                                             bias_regularizer_l2=bias_regularizer_l2)
                                         
                                         # Train Model
-                                        model.train(X, y, iterations=iterations, batch_size=batch_size, print_every=print_every, validation_data=(X_val, y_val))
+                                        model.train(X, y, iterations=iterations, batch_size=batch_size, print_every=0, validation_data=(X_val, y_val))
 
                                         # Get Accuracy
                                         validation_data = model.evaluate(X_val, y_val)
@@ -78,6 +93,8 @@ def perform_grid_search(param_file_path, X, y, X_val, y_val,
                                                 "weight_regularizer_l2": weight_regularizer_l2,
                                                 "bias_regularizer_l2": bias_regularizer_l2
                                             }
+
+                                        current_parameter_set+=1
     
     # Get end time
     end_time = time.time()
