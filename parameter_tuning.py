@@ -19,43 +19,43 @@ def perform_grid_search(param_file_path, X, y, X_val, y_val,
     dropouts=[0.1], 
     learning_rates=[0.01], 
     learning_decays=[1e-3], 
-    weight_regularizers_l1=[0.01], 
-    bias_regularizers_l1=[0.01],
-    weight_regularizers_l2=[0.01], 
-    bias_regularizers_l2=[0.01]):
+    weight_regularizers_l1=[0], 
+    bias_regularizers_l1=[0],
+    weight_regularizers_l2=[0.001], 
+    bias_regularizers_l2=[0.001]):
 
     # Initialize Variables
     current_parameter_set = 1
+    total_parameter_sets = len(hidden_layers) * len(neurons) * len(dropouts) * len(learning_rates) * len(learning_decays) * len(weight_regularizers_l1) * len(bias_regularizers_l1) * len(weight_regularizers_l2) * len(bias_regularizers_l2)
     best_accuracy = 0
     best_parameters = {}
 
     # Get start time
     start_time = time.time()
 
-    # Initialize Model
-    model = Model()
+
 
     # Iterate through all possible combinations of parameters
-    for hidden_layer in hidden_layers:
-        for neuron in neurons:
-            for dropout in dropouts:
-                for learning_rate in learning_rates:
+    for bias_regularizer_l2 in bias_regularizers_l2:
+        for weight_regularizer_l2 in weight_regularizers_l2:
+            for bias_regularizer_l1 in bias_regularizers_l1:
+                for weight_regularizer_l1 in weight_regularizers_l1:
                     for learning_decay in learning_decays:
-                        for weight_regularizer_l1 in weight_regularizers_l1:
-                            for bias_regularizer_l1 in bias_regularizers_l1:
-                                for weight_regularizer_l2 in weight_regularizers_l2:
-                                    for bias_regularizer_l2 in bias_regularizers_l2:
+                        for learning_rate in learning_rates:
+                            for dropout in dropouts:
+                                for neuron in neurons:
+                                    for hidden_layer in hidden_layers:
                                         # Print Progress
                                         print(time.strftime("[%H:%M:%S]", time.localtime(time.time())) +
-                                              " [Set #" + f'{current_parameter_set}' +
+                                              " [Set #" + f'{current_parameter_set}/{total_parameter_sets}' +
                                               ", Hidden Layers: " + f'{hidden_layer}' + 
                                               ", Neurons: " + f'{neuron}' + 
-                                              ", Dropout Rate: " +  f'{dropout}%' + 
+                                              ", Dropout Rate: " +  f'{dropout*10}%' + 
                                               ", Learning Rate: " +  f'{learning_rate}' +
                                               ", Learning Rate Decay: " + f'{learning_decay}' + ',\n\t'
                                               "Weight Regularization L1: " +  f'{weight_regularizer_l1}' +
-                                              ", Bias Regularization L1: " +  f'{weight_regularizer_l2}' +
-                                              ", Weight Regularization L2: " +  f'{weight_regularizer_l1}' +
+                                              ", Bias Regularization L1: " +  f'{bias_regularizer_l1}' +
+                                              ", Weight Regularization L2: " +  f'{weight_regularizer_l2}' +
                                               ", Bias Regularization L2: " +  f'{bias_regularizer_l2}' +
                                               "]")
 
@@ -72,11 +72,10 @@ def perform_grid_search(param_file_path, X, y, X_val, y_val,
                                             bias_regularizer_l2=bias_regularizer_l2)
                                         
                                         # Train Model
-                                        model.train(X, y, iterations=iterations, batch_size=batch_size, print_every=0, validation_data=(X_val, y_val))
+                                        analysis_data = model.train(X, y, iterations=iterations, batch_size=batch_size, print_every=0, validation_data=(X_val, y_val))
 
                                         # Get Accuracy
-                                        validation_data = model.evaluate(X_val, y_val)
-                                        accuracy = validation_data["validation_accuracy"]
+                                        accuracy = analysis_data["validation_accuracy"]
 
                                         # Check if Accuracy is Best
                                         if accuracy > best_accuracy:

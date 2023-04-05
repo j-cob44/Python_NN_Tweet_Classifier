@@ -111,15 +111,15 @@ while continue_actions:
 
             print(""); # New Line for viewing pleasure
             perform_grid_search(parameter_save_path, X, y, X_val, y_val,
-                hidden_layers = [2, 3, 4],  # Number of hidden layers
+                hidden_layers = [1, 2],  # Number of hidden layers
                 neurons = [64, 128, 256],  # Number of neurons in each hidden layer
-                dropouts = [0.1, 0.2, 0.3],  # Dropout rate
-                learning_rates = [0.001, 0.01, 0.1],  # Learning rate
-                learning_decays = [1e-4, 1e-3, 1e-2],  # Learning rate decay
-                weight_regularizers_l1 = [0.001, 0.01, 0.1],  # L1 weight regularization
-                bias_regularizers_l1 = [0.001, 0.01, 0.1],  # L1 bias regularization
-                weight_regularizers_l2 = [0.001, 0.01, 0.1],  # L2 weight regularization
-                bias_regularizers_l2 = [0.001, 0.01, 0.1])  # L2 bias regularization
+                dropouts = [0.1, 0.2, 0.25, 0.3],  # Dropout rate
+                learning_rates = [0.001, 0.01, 0.0001, 0.02],  # Learning rate
+                learning_decays = [1e-4, 5e-5, 1e-3, 1e-5, 5e-7],  # Learning rate decay
+                #weight_regularizers_l1 = [0.001, 0.01, 0.1],  # L1 weight regularization
+                #bias_regularizers_l1 = [0.001, 0.01, 0.1],  # L1 bias regularization
+                weight_regularizers_l2 = [1e-4, 5e-5, 1e-5],  # L2 weight regularization
+                bias_regularizers_l2 = [1e-4, 5e-5, 1e-5])  # L2 bias regularization
         
     # Quit
     elif user_action == "q":

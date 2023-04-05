@@ -15,9 +15,9 @@ def create_model(
         dropout=0.1, 
         learning_rate=0.01, 
         learning_decay=1e-3, 
-        weight_regularizer_l1=0.01, 
+        weight_regularizer_l1=0, 
         weight_regularizer_l2=0.01,
-        bias_regularizer_l1=0.01,
+        bias_regularizer_l1=0,
         bias_regularizer_l2=0.01):
     
     # Initialize Model
@@ -35,11 +35,11 @@ def create_model(
 
     # Hidden Layers
     for i in range(hidden_layers):
-        model.add(Layer_Dense(neurons, neurons,
-            weight_regularizer_l1=weight_regularizer_l1,
-            bias_regularizer_l1=bias_regularizer_l1,
-            weight_regularizer_l2=weight_regularizer_l2, 
-            bias_regularizer_l2=bias_regularizer_l2))
+        model.add(Layer_Dense(neurons, neurons))
+            #weight_regularizer_l1=weight_regularizer_l1,
+            #bias_regularizer_l1=bias_regularizer_l1,
+            #weight_regularizer_l2=weight_regularizer_l2, 
+            #bias_regularizer_l2=bias_regularizer_l2))
         model.add(Activation_ReLU())
         model.add(Layer_Dropout(dropout))
         
