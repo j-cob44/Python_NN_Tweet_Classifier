@@ -3,6 +3,7 @@
 # With help from NNFS.io Book by Harrison Kinsley and Daniel Kukiela
 
 import numpy as np
+from scipy.special import expit
 
 # Rectified Linear Activation Class (ReLU)
 class Activation_ReLU:
@@ -55,7 +56,7 @@ class Activation_Sigmoid:
     # Forward pass
     def forward(self, inputs, training):
         self.inputs = inputs # Save input values
-        self.output = 1 / (1 + np.exp(-inputs))
+        self.output = expit(inputs) #1 / (1 + np.exp(-inputs))
 
     # Backward pass
     def backward(self, dvalues):

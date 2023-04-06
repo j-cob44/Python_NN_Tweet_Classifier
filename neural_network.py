@@ -31,15 +31,15 @@ while continue_actions:
 
             # Create the model
             model = create_model(
-                hidden_layers=1, 
+                hidden_layers=2, 
                 neurons=128, 
-                dropout=0.3, 
+                dropout=0.1, 
                 learning_rate=0.01, 
-                learning_decay=0.0001, 
+                learning_decay=1e-3, 
                 weight_regularizer_l1=0, 
-                weight_regularizer_l2=0.0001,
+                weight_regularizer_l2=0,
                 bias_regularizer_l1=0,
-                bias_regularizer_l2=0.0001
+                bias_regularizer_l2=0
             )
 
             # Check if X is 3D
@@ -118,19 +118,39 @@ while continue_actions:
             print("\nWhere would you like to save the results to?")
             save_path = input("parameter_data/")
             parameter_save_path = "parameter_data/" + save_path
-
             print(""); # New Line for viewing pleasure
-            perform_grid_search(parameter_save_path, X, y, X_val, y_val,
-                hidden_layers = [1, 2], # Number of hidden layers
-                neurons = [64, 128, 256], # Number of neurons in each hidden layer
-                dropouts = [0.1, 0.2, 0.25, 0.3], # Dropout rate
-                learning_rates = [0.001, 0.01, 0.0001, 0.02], # Learning rate
-                learning_decays = [1e-4, 5e-5, 1e-3, 1e-5, 5e-7], # Learning rate decay
-                #weight_regularizers_l1 = [0.001, 0.01, 0.1], # L1 weight regularization # broken?
-                #bias_regularizers_l1 = [0.001, 0.01, 0.1], # L1 bias regularization # broken?
-                weight_regularizers_l2 = [1e-4, 5e-5, 1e-5], # L2 weight regularization
-                bias_regularizers_l2 = [1e-4, 5e-5, 1e-5] # L2 bias regularization
-            )
+
+            # Get User Input
+            search_type = input("What search would you like to do? (g)rid search, (r)andom search: ")
+
+            if(search_type == "g"):
+                # Perform Grid Search
+                perform_grid_search(parameter_save_path, X, y, X_val, y_val,
+                    hidden_layers = [1, 2], # Number of hidden layers
+                    neurons = [64, 128, 256], # Number of neurons in each hidden layer
+                    dropouts = [0.1, 0.2, 0.25, 0.3], # Dropout rate
+                    learning_rates = [0.001, 0.01, 0.0001, 0.02], # Learning rate
+                    learning_decays = [1e-4, 5e-5, 1e-3, 1e-5, 5e-7], # Learning rate decay
+                    #weight_regularizers_l1 = [0.001, 0.01, 0.1], # L1 weight regularization # broken?
+                    #bias_regularizers_l1 = [0.001, 0.01, 0.1], # L1 bias regularization # broken?
+                    weight_regularizers_l2 = [1e-4, 5e-5, 1e-5], # L2 weight regularization
+                    bias_regularizers_l2 = [1e-4, 5e-5, 1e-5] # L2 bias regularization
+                )
+            elif(search_type == "r"):
+                # Perform Random Search
+                random_search(parameter_save_path, X, y, X_val, y_val, search_iterations=220,
+                    training_iterations = [10, 20, 30], # Number of training iterations
+                    batch_size = [32, 64, 128, 256], # Training Batch size
+                    hidden_layers = [1, 2, 3, 4, 5], # Number of hidden layers
+                    neurons = [32, 64, 128, 256, 512], # Number of neurons in each hidden layer
+                    dropouts = [0.1, 0.2, 0.25, 0.3, 0.5], # Dropout rate
+                    learning_rates = [0.001, 0.01, 0.0001, 0.005, 0.00005], # Learning rate
+                    learning_decays = [1e-4, 5e-5, 1e-3, 1e-5], # Learning rate decay
+                    weight_regularizers_l1 = [0, 0.001, 0.01], # L1 weight regularization
+                    bias_regularizers_l1 = [0, 0.001, 0.01], # L1 bias regularization
+                    weight_regularizers_l2 = [1e-4, 5e-5, 1e-5], # L2 weight regularization
+                    bias_regularizers_l2 = [1e-4, 5e-5, 1e-5] # L2 bias regularization
+                )
         
     # Quit
     elif user_action == "q":

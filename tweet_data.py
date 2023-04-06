@@ -19,6 +19,10 @@ char_dict = [' ', 'A', 'B', 'C', 'D', 'E', 'F',
     'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
     'w', 'x', 'y', 'z', '!', '?', '$', "'", ',', '.', '0', '1', '2', '3', '4', '5', '6', '7', '9', ':', '@']
 
+# Stop Words Dictionary
+stop_words = [ "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", 
+    "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with"]
+
 # Maximum Tweet Length
 max_tweet_length = 280
 
@@ -75,10 +79,19 @@ def process_dataset_from_csv(path):
 
     return dataset
 
+# Remove Stop Words | Input: string, Output: string
+def remove_stopwords(text):
+    words = text.split()
+    filtered_words = [word for word in words if word.lower() not in stop_words]
+    return ' '.join(filtered_words)
+
 # Process Tweet Data | Input: numpy array of tweets, Output: numpy array of processed tweets
 def process_tweet_data(tweet_dataset):
     # For each tweet in the dataset
     for i in range(len(tweet_dataset)) :
+        # Remove stop words
+        tweet_dataset[i] = remove_stopwords(tweet_dataset[i])
+
         # Replace Apostrophes
         tweet_dataset[i] = tweet_dataset[i].replace('‘', "'").replace('’', "'")
 
@@ -93,7 +106,7 @@ def process_tweet_data(tweet_dataset):
 
         # Make sure all tweets are 280 characters long
         if len(tweet_dataset[i]) < max_tweet_length:
-            # add spaces to the end of the tweet to make it 280 characters long
+            # Add spaces to the end of the tweet to make it 280 characters long
             tweet_dataset[i] = tweet_dataset[i].ljust(max_tweet_length, ' ')
 
     # Character-level One-Hot Encode all tweets
