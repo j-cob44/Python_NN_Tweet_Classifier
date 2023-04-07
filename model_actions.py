@@ -125,7 +125,7 @@ def analyze_training_data(path):
     if training_data.get("validation_accuracy") != 0:
         print("Validation Accuracy: " + f'{(training_data.get("validation_accuracy") * 100):.2f}' + "%")
     if training_data.get("validation_loss") != 0:
-        print("Validation Loss: " + f'{(training_data.get("validation_loss") * 100):.5f}')
+        print("Validation Loss: " + f'{(training_data.get("validation_loss")):.8f}')
 
     # Draw Plots
     y1 = training_data.get("loss_history")

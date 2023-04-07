@@ -32,14 +32,14 @@ while continue_actions:
             # Create the model
             model = create_model(
                 hidden_layers=2, 
-                neurons=128, 
-                dropout=0.1, 
-                learning_rate=0.01, 
-                learning_decay=1e-3, 
+                neurons=294, 
+                dropout=8.58305803e-02, 
+                learning_rate=8.92963170e-03, 
+                learning_decay=4.29344269e-05, 
                 weight_regularizer_l1=0, 
-                weight_regularizer_l2=0,
+                weight_regularizer_l2=1.73501482e-07,
                 bias_regularizer_l1=0,
-                bias_regularizer_l2=0
+                bias_regularizer_l2=3.01698914e-07
             )
 
             # Check if X is 3D
@@ -48,8 +48,8 @@ while continue_actions:
                 X = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
 
             # Training Parameters
-            epochs = 10
-            batch_size = 64
+            epochs = 19 # training iterations
+            batch_size = 42
             print_every = 20
 
             # Check if validation data is provided
@@ -115,13 +115,13 @@ while continue_actions:
             if len(X_val.shape) == 3:
                 X_val = X_val.reshape(X_val.shape[0], X_val.shape[1] * X_val.shape[2])
 
+            # Get User Input
+            search_type = input("What search would you like to do? (g)rid search, (r)andom search, (b)ayesian optimization: ")
+
             print("\nWhere would you like to save the results to?")
             save_path = input("parameter_data/")
             parameter_save_path = "parameter_data/" + save_path
             print(""); # New Line for viewing pleasure
-
-            # Get User Input
-            search_type = input("What search would you like to do? (g)rid search, (r)andom search: ")
 
             if(search_type == "g"):
                 # Perform Grid Search
@@ -138,11 +138,11 @@ while continue_actions:
                 )
             elif(search_type == "r"):
                 # Perform Random Search
-                random_search(parameter_save_path, X, y, X_val, y_val, search_iterations=220,
+                random_search(parameter_save_path, X, y, X_val, y_val, search_iterations=50,
                     training_iterations = [10, 20, 30], # Number of training iterations
                     batch_size = [32, 64, 128, 256], # Training Batch size
-                    hidden_layers = [1, 2, 3, 4, 5], # Number of hidden layers
-                    neurons = [32, 64, 128, 256, 512], # Number of neurons in each hidden layer
+                    hidden_layers = [1, 2, 3, 4], # Number of hidden layers
+                    neurons = [32, 64, 128, 256], # Number of neurons in each hidden layer
                     dropouts = [0.1, 0.2, 0.25, 0.3, 0.5], # Dropout rate
                     learning_rates = [0.001, 0.01, 0.0001, 0.005, 0.00005], # Learning rate
                     learning_decays = [1e-4, 5e-5, 1e-3, 1e-5], # Learning rate decay
@@ -150,6 +150,25 @@ while continue_actions:
                     bias_regularizers_l1 = [0, 0.001, 0.01], # L1 bias regularization
                     weight_regularizers_l2 = [1e-4, 5e-5, 1e-5], # L2 weight regularization
                     bias_regularizers_l2 = [1e-4, 5e-5, 1e-5] # L2 bias regularization
+                )
+            elif(search_type == "b"):
+                print(""); # New Line 
+                # Perform Bayesian Optimization Search
+                bayesian_search(parameter_save_path, X, y, X_val, y_val, 
+                    search_iterations=25, acq_func='ucb', kappa=2.576, sigma_noise=1e-6,
+                    param_space = {
+                        "weight_regularizer_l1": (0, 0), 
+                        "bias_regularizer_l1": (0, 0),
+                        "weight_regularizer_l2": (0, 5e-07), 
+                        "bias_regularizer_l2": (0, 5e-07),
+                        "learning_decay": (1e-7, 1e-4), 
+                        "learning_rate": (0.0001, 0.1), 
+                        "dropout_rate": (0, 0.5), 
+                        "neurons": (int(32), int(512)), 
+                        "hidden_layers": (int(1), int(3)), 
+                        "batch_size": (int(32), int(256)),
+                        "training_iterations": (int(8), int(32))
+                    }
                 )
         
     # Quit
