@@ -151,6 +151,7 @@ def perform_grid_search(param_file_path, X, y, X_val, y_val,
 
     # End grid search
 
+# Random Search for Hyperparameter Tuning 
 def random_search(param_file_path, X, y, X_val, y_val, search_iterations=110, 
     training_iterations=[10], 
     batch_size=[64],
@@ -270,9 +271,10 @@ def random_search(param_file_path, X, y, X_val, y_val, search_iterations=110,
 
     # End random search
 
-# Bayesian Seach Optimization function
+# Bayesian Search Optimization function
+# search_iterations = ~10-20 times the number of parameters being optimized as a starting point.
 def bayesian_search(param_file_path, X, y, X_val, y_val, 
-    search_iterations=110, acq_func='ucb', kappa=2.576, sigma_noise=1e-6,
+    search_iterations=120, acq_func='ucb', kappa=2.576, sigma_noise=1e-6,
     param_space = {
         "weight_regularizer_l1": (0, 0), 
         "bias_regularizer_l1": (0, 0),
@@ -283,10 +285,11 @@ def bayesian_search(param_file_path, X, y, X_val, y_val,
         "dropout_rate": (0, 0.5), 
         "neurons": (32, 512), 
         "hidden_layers": (1, 3), 
-        "batch_size": (32, 256),
-        "training_iterations": (8, 32)
-    }
-    ):
+        "activation_function": (int(0), int(3)), # (0, 1] = relu, (1, 2] = tanh, (2, 3] = sigmoid
+        # Training Parameters
+        "batch_size": (int(32), int(256)),
+        "training_iterations": (int(8), int(32))
+    }):
 
     # Define the search bounds for each parameter
     bounds = {}
@@ -297,8 +300,39 @@ def bayesian_search(param_file_path, X, y, X_val, y_val,
         else:
             bounds[key] = (value[1], value[0])
 
+    # Slice X and y by 33%
+    training_full_length = len(X)
+    training_split = int(training_full_length * 0.33)
+    X = X[:training_split]
+    y = y[:training_split] 
+
+    i = 0;
+    init_searches = len(bounds.keys())
+    searches = search_iterations + init_searches
+
     # Initialize the object function to minimize, which is the negative accuracy
     def objective(**params):
+        # Get iteration counts
+        nonlocal i;
+        nonlocal init_searches
+        nonlocal searches;
+
+        if i == init_searches + 1:
+            print("\n" + time.strftime("[%H:%M:%S]", time.localtime(time.time())) +
+                  "[Initial parameter searches completed, beginning Bayesian Optimization.]")
+
+        # Get activation function
+        activation_value = int(math.ceil(params["activation_function"])) # 0-1 = relu, 1-2 = tanh, 2-3 = sigmoid, equal spacing
+
+        if activation_value == 1:
+            activation = "relu"
+        elif activation_value == 2:
+            activation = "tanh"
+        elif activation_value == 3:
+            activation = "sigmoid"
+        else:
+            raise Exception("Invalid activation function value: " + str(activation_value))
+
         # Convert parameters to dictionary
         param_set = {
             "weight_regularizer_l1": params["weight_regularizer_l1"], 
@@ -308,46 +342,90 @@ def bayesian_search(param_file_path, X, y, X_val, y_val,
             "learning_decay": params["learning_decay"], 
             "learning_rate": params["learning_rate"], 
             "dropout_rate": params["dropout_rate"], 
-            "neurons": round(params["neurons"]), 
-            "hidden_layers": round(params["hidden_layers"]), 
-            "batch_size": round(params["batch_size"]),
-            "iterations": round(params["training_iterations"])
-        } 
-        
+            "neurons": int(math.ceil((params["neurons"]))), # (31, 32] = 32, (32, 33] = 33, etc.
+            "hidden_layers": int(math.ceil((params["hidden_layers"]))), # (0, 1] = 1, (1, 2] = 2, (2, 3] = 3, etc.
+            "batch_size": int(math.ceil((params["batch_size"]))), # (31, 32] = 32, (63, 64] = 64, etc.
+            "iterations": int(math.ceil((params["training_iterations"]))),  # (7, 8] = 8, (15, 16] = 16, etc.
+            "activation": activation
+        }
+
+        # 
+        print("\n" + time.strftime("[%H:%M:%S]", time.localtime(time.time())) +
+            "[Set: "+ f'{i}' + "/" + f'{searches}' +
+            ": Training Iterations: " + f'{param_set["iterations"]}' +
+            ", Batch Size: " + f'{param_set["batch_size"]}' +
+            ", Activation Function: " + activation.upper() +
+            ", \n\tHidden Layers: " + f'{param_set["hidden_layers"]}' + 
+            ", Neurons: " + f'{param_set["neurons"]}' + 
+            ", Dropout Rate: " +  f'{param_set["dropout_rate"] * 100}%' + 
+            ", Learning Rate: " +  f'{param_set["learning_rate"]}' +
+            ", Learning Rate Decay: " + f'{param_set["learning_decay"]}' +
+            ", \n\tWeight Regularization L1: " +  f'{param_set["weight_regularizer_l1"]}' +
+            ", Bias Regularization L1: " +  f'{param_set["bias_regularizer_l1"]}' +
+            ", Weight Regularization L2: " +  f'{param_set["weight_regularizer_l2"]}' +
+            ", Bias Regularization L2: " +  f'{param_set["bias_regularizer_l2"]}' +
+            "]")
+
+
+
         # Train Model
         results = run_model(param_set, X, y, X_val, y_val, 1, 1, display_data=False)
+
+        # Print Results
+        print(time.strftime("[%H:%M:%S]", time.localtime(time.time())) +
+            "[Results: " +
+            "Score: " + f'{results[0] - results[2]}' +
+            ", Validation Accuracy: " + f'{results[0] * 100}%' +
+            ", Validation Loss: " + f'{results[2]}' + "]"
+        )
+
+        # Increment iteration count
+        i += 1
 
         # Return target = accuracy - loss, to minimize loss and maximize accuracy
         return results[0] - results[2]
     
     # Get Start time
     start_time = time.time()
+    print("\n" + time.strftime("[%H:%M:%S]", time.localtime(time.time())) + "[Bayesian Search Started]")
 
     # Initialize Bayesian optimizer. From package BayesianOptimization by Fernando Nogueira at https://github.com/fmfn/BayesianOptimization
-    optimizer = BayesianOptimization(f=objective, pbounds=bounds, verbose=2, random_state=1)
+    optimizer = BayesianOptimization(f=objective, pbounds=bounds, verbose=0, random_state=1)
 
-    # Optimize
-    optimizer.maximize(n_iter=search_iterations, acq=acq_func, kappa=kappa, xi=sigma_noise)
+    # Optimize using initial points of length(parameters)
+    optimizer.maximize(init_points=len(bounds.keys()), n_iter=search_iterations, acq=acq_func, kappa=kappa, xi=sigma_noise) # acq = "ucb", "ei", "poi"
 
     # Get end time
     end_time = time.time()
+    print("\n" + time.strftime("[%H:%M:%S]", time.localtime(time.time())) + "[Bayesian Search Completed]")
+    print("[Best Score: " + f'{optimizer.max["target"]}' + "]")
 
     # Save Results
+    activation_value = int(math.ceil(optimizer.max['params']["activation_function"])) # (0, 1] = 1 relu, (1, 2] = 2 tanh, (2, 3] = 3 sigmoid
+
+    if activation_value == 1:
+        activation = "relu"
+    elif activation_value == 2:
+        activation = "tanh"
+    elif activation_value == 3:
+        activation = "sigmoid"
+
     stats = {
         "time_elapsed": end_time - start_time,
         "best_score": optimizer.max['target'],
         "best_parameters": {
+            "batch_size": int(math.ceil(optimizer.max['params']["batch_size"])),
+            "iterations": int(math.ceil(optimizer.max['params']["training_iterations"])),
+            "activation": activation.upper(),
+            "hidden_layers": int(math.ceil(optimizer.max['params']["hidden_layers"])),
+            "neurons": int(math.ceil(optimizer.max['params']["neurons"])),
+            "dropout_rate": optimizer.max['params']["dropout_rate"], 
+            "learning_rate": optimizer.max['params']["learning_rate"], 
+            "learning_decay": optimizer.max['params']["learning_decay"], 
             "weight_regularizer_l1": optimizer.max['params']["weight_regularizer_l1"], 
             "bias_regularizer_l1": optimizer.max['params']["bias_regularizer_l1"],
             "weight_regularizer_l2": optimizer.max['params']["weight_regularizer_l2"], 
-            "bias_regularizer_l2": optimizer.max['params']["bias_regularizer_l2"],
-            "learning_decay": optimizer.max['params']["learning_decay"], 
-            "learning_rate": optimizer.max['params']["learning_rate"], 
-            "dropout_rate": optimizer.max['params']["dropout_rate"], 
-            "neurons": round(optimizer.max['params']["neurons"]), 
-            "hidden_layers": round(optimizer.max['params']["hidden_layers"]), 
-            "batch_size": round(optimizer.max['params']["batch_size"]),
-            "iterations": round(optimizer.max['params']["training_iterations"])
+            "bias_regularizer_l2": optimizer.max['params']["bias_regularizer_l2"]
         }
     }
 

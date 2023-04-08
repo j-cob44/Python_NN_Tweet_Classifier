@@ -11,14 +11,15 @@ from tweet_data import *
 # Creation of Neural Network Model
 def create_model(
         hidden_layers=2, 
-        neurons=128, 
-        dropout=0.1, 
-        learning_rate=0.01, 
+        neurons=64, 
+        dropout=0.25, 
+        learning_rate=0.1, 
         learning_decay=1e-3, 
         weight_regularizer_l1=0, 
         weight_regularizer_l2=0.01,
         bias_regularizer_l1=0,
-        bias_regularizer_l2=0.01):
+        bias_regularizer_l2=0.01,
+        activation="relu"):
     
     # Initialize Model
     model = Model()
@@ -29,19 +30,30 @@ def create_model(
         weight_regularizer_l1=weight_regularizer_l1,
         bias_regularizer_l1=bias_regularizer_l1,
         weight_regularizer_l2=weight_regularizer_l2, 
-        bias_regularizer_l2=bias_regularizer_l2))
-    model.add(Activation_ReLU())
-    model.add(Layer_Dropout(dropout)) # Dropout to prevent overfitting (10% of neurons are randomly dropped)
+        bias_regularizer_l2=bias_regularizer_l2
+    ))
+    # NO ACTIVATION FUNCTION FOR INPUT LAYER BECAUSE THE DATA IS ALREADY NORMALIZED (0-1) AND ONE-HOT ENCODED
+    # Dropout is uncommon for input layer for binary classification, instead the input layer will be using weight and bias L1 and L2 regularization
 
     # Hidden Layers
     for i in range(hidden_layers):
         model.add(Layer_Dense(neurons, neurons,
-            #weight_regularizer_l1=weight_regularizer_l1,
-            #bias_regularizer_l1=bias_regularizer_l1,
+            weight_regularizer_l1=weight_regularizer_l1,
+            bias_regularizer_l1=bias_regularizer_l1,
             weight_regularizer_l2=weight_regularizer_l2, 
             bias_regularizer_l2=bias_regularizer_l2
         ))
-        model.add(Activation_ReLU())
+        
+        # Select Activation function for hidden layers
+        if activation == "relu":
+            model.add(Activation_ReLU())
+        elif activation == "tanh":
+            model.add(Activation_Tanh())
+        elif activation == "sigmoid":
+            model.add(Activation_Sigmoid())
+        else:
+            raise Exception("Activation Function not recognized")
+        
         model.add(Layer_Dropout(dropout))
         
     # Output Layer

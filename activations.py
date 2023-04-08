@@ -51,7 +51,7 @@ class Activation_Softmax_Loss_CategoricalCrossEntropy():
         self.dinputs[range(samples), y_true] -= 1 # Calculate gradient
         self.dinputs = self.dinputs / samples # Normalization of gradient
 
-# Sigmoid Activation Class
+# Sigmoid Activation Class - Used to predict binary values (0 or 1)
 class Activation_Sigmoid:
     # Forward pass
     def forward(self, inputs, training):
@@ -66,7 +66,7 @@ class Activation_Sigmoid:
     def predictions(self, outputs):
         return (outputs > 0.5) * 1
     
-# Linear Activation Class
+# Linear Activation Class - Used as an output for regression problems where the goal is to predict a continuous value
 class Activation_Linear:
     # Forward pass
     def forward(self, inputs, training):
@@ -78,5 +78,20 @@ class Activation_Linear:
         self.dinputs = dvalues.copy()
 
     # Calculate predictions for Linear
+    def predictions(self, outputs):
+        return outputs
+    
+# Tanh Activation Class - Tanh is used as a smooth function that can be easily differentiated since the output range is between -1 and 1
+class Activation_Tanh:
+    # Forward pass
+    def forward(self, inputs, training):
+        self.inputs = inputs
+        self.output = np.tanh(inputs)
+
+    # Backward pass
+    def backward(self, dvalues):
+        self.dinputs = dvalues * (1 - self.output**2)
+
+    # Calculate predictions for Tanh
     def predictions(self, outputs):
         return outputs
