@@ -169,12 +169,12 @@ while continue_actions:
                         "learning_decay": (1e-8, 0.01),
                         "learning_rate": (0.0001, 0.1),
                         "dropout_rate": (0, 0.5),
-                        "neurons": (int(31), int(256)), # (31, 32] = 32
-                        "hidden_layers": (int(0), int(3)), # (0, 1] = 1, (1, 2] = 2, (2, 3] = 3
-                        "activation_function": (int(1), int(3)), # (0, 1] = relu, (1, 2] = tanh, (2, 3] = sigmoid
+                        "neurons": (int(31 + 1e-10), int(256)), # (31, 32] = 32
+                        "hidden_layers": (int(0 + 1e-10), int(3)), # (0, 1] = 1, (1, 2] = 2, (2, 3] = 3
+                        "activation_function": (int(1 + 1e-10), int(3)), # (0, 1] = relu, (1, 2] = tanh, (2, 3] = sigmoid
                         # Training Parameters
-                        "batch_size": (int(31), int(128)), # (31, 32] = 32
-                        "training_iterations": (int(7), int(32)) # (7, 8] = 8, (8, 9] = 9, (31, 32] = 32
+                        "batch_size": (int(31 + 1e-10), int(128)), # (31, 32] = 32
+                        "training_iterations": (int(7 + 1e-10), int(32)) # (7, 8] = 8, (8, 9] = 9, (31, 32] = 32
                     }
                 )
         
