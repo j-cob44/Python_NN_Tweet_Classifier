@@ -170,9 +170,9 @@ while continue_actions:
                         "learning_decay": (1e-5, 0.01),
                         "learning_rate": (0.005, 0.025),
                         "dropout_rate": (0.1, 0.3),
-                        "neurons": (int(127 + 1e-7), int(300)), # [(126, 127] = 127, 300]
+                        "neurons": (int(149 + 1e-7), int(300)), # [(149, 150] = 150, 300]
                         "hidden_layers": (int(1 + 1e-7), int(3)), # (1, 2] = 2, (2, 3] = 3
-                        "activation_function": (int(1 + 1e-7), int(2)), # (0, 1] = relu, (1, 2] = tanh, (2, 3] = sigmoid
+                        "activation_function": (int(0 + 1e-7), int(2)), # (0, 1] = relu, (1, 2] = tanh, (2, 3] = sigmoid
                         # Training Parameters
                         "batch_size": (int(39 + 1e-7), int(100)), # (31, 32] = 32
                         "training_iterations": (int(19 + 1e-7), int(50)) # (7, 8] = 8, (8, 9] = 9, (31, 32] = 32

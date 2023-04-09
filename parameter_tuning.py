@@ -402,6 +402,9 @@ def bayesian_search(param_file_path, X, y, X_val, y_val,
                 ", Validation Loss: " + f'{results[2]}' + "]"
             )
 
+        # Default score to beat
+        if i == 0:
+            best_score = score
         # Increment iteration count
         i += 1
 
