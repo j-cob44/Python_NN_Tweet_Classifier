@@ -95,3 +95,23 @@ class Activation_Tanh:
     # Calculate predictions for Tanh
     def predictions(self, outputs):
         return outputs
+    
+# Leaky ReLU Activation Class - Leaky ReLU is a modified version of ReLU where the function will return a small negative output when the input is negative
+class Activation_LeakyReLU:
+    # Initialize LeakyReLU
+    def __init__(self, slope=0.01):
+        self.slope = slope
+    
+    # Forward pass
+    def forward(self, inputs, training):
+        self.inputs = inputs
+        self.output = np.maximum(self.slope * inputs, inputs)
+    
+    # Backward pass
+    def backward(self, dvalues):
+        self.dinputs = dvalues.copy()
+        self.dinputs[self.inputs < 0] = self.slope * self.dinputs[self.inputs < 0]
+    
+    # Calculate predictions for LeakyReLU
+    def predictions(self, outputs):
+        return outputs

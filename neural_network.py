@@ -31,16 +31,16 @@ while continue_actions:
 
             # Create the model
             model = create_model(
-                hidden_layers=3, 
-                neurons=64, 
+                hidden_layers=2, 
+                neurons=200, 
                 dropout=0.2, 
-                learning_rate=0.1, 
+                learning_rate=0.01, 
                 learning_decay=1e-3, 
-                weight_regularizer_l1=0.01, 
-                weight_regularizer_l2=0.001,
-                bias_regularizer_l1=0.01,
-                bias_regularizer_l2=0.001,
-                activation="tanh"
+                weight_regularizer_l1=0, 
+                weight_regularizer_l2=0.00001, 
+                bias_regularizer_l1=0, 
+                bias_regularizer_l2=0.00001, 
+                activation="tanh" # relu, tanh, sigmoid, leakyrelu
             )
 
             # Check if X is 3D
@@ -49,8 +49,8 @@ while continue_actions:
                 X = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
 
             # Training Parameters
-            epochs = 19 # training iterations
-            batch_size = 42
+            epochs = 40 # training iterations
+            batch_size = 64
             print_every = 25
 
             # Check if validation data is provided
@@ -157,24 +157,25 @@ while continue_actions:
                 # Perform Bayesian Optimization Search
                 bayesian_search(parameter_save_path, X, y, X_val, y_val, 
                     search_iterations=48, 
-                    acq_func='ei', # Acquisition function = 'ucb', 'ei', or 'poi'
+                    acq_func='poi', # Acquisition function = 'ucb', 'ei', or 'poi'
                     kappa=2.576, 
                     sigma_noise=1e-6,
+                    target="accuracy", # Target = max 'accuracy', min 'loss', or 'both'
                     param_space = {
                         # Model Parameters
-                        "weight_regularizer_l1": (0, 0.01),
-                        "bias_regularizer_l1": (0, 0.001),
-                        "weight_regularizer_l2": (0, 0.0001),
-                        "bias_regularizer_l2": (0, 0.00001),
-                        "learning_decay": (1e-8, 0.01),
-                        "learning_rate": (0.0001, 0.1),
-                        "dropout_rate": (0, 0.5),
-                        "neurons": (int(31 + 1e-10), int(256)), # (31, 32] = 32
-                        "hidden_layers": (int(0 + 1e-10), int(3)), # (0, 1] = 1, (1, 2] = 2, (2, 3] = 3
-                        "activation_function": (int(1 + 1e-10), int(3)), # (0, 1] = relu, (1, 2] = tanh, (2, 3] = sigmoid
+                        "weight_regularizer_l1": (0, 0),
+                        "bias_regularizer_l1": (0, 0),
+                        "weight_regularizer_l2": (0, 1e-3),
+                        "bias_regularizer_l2": (0, 1e-3),
+                        "learning_decay": (1e-5, 0.01),
+                        "learning_rate": (0.005, 0.025),
+                        "dropout_rate": (0.1, 0.3),
+                        "neurons": (int(127 + 1e-7), int(300)), # [(126, 127] = 127, 300]
+                        "hidden_layers": (int(1 + 1e-7), int(3)), # (1, 2] = 2, (2, 3] = 3
+                        "activation_function": (int(1 + 1e-7), int(2)), # (0, 1] = relu, (1, 2] = tanh, (2, 3] = sigmoid
                         # Training Parameters
-                        "batch_size": (int(31 + 1e-10), int(128)), # (31, 32] = 32
-                        "training_iterations": (int(7 + 1e-10), int(32)) # (7, 8] = 8, (8, 9] = 9, (31, 32] = 32
+                        "batch_size": (int(39 + 1e-7), int(100)), # (31, 32] = 32
+                        "training_iterations": (int(19 + 1e-7), int(50)) # (7, 8] = 8, (8, 9] = 9, (31, 32] = 32
                     }
                 )
         

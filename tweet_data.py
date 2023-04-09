@@ -13,11 +13,12 @@ nn_data_categories = {
     0: "Negative"
 }
 
-# Character Dictionary - 70 Characters
-char_dict = [' ', 'A', 'B', 'C', 'D', 'E', 'F',
-    'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a',
-    'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-    'w', 'x', 'y', 'z', '!', '?', '$', "'", ',', '.', '0', '1', '2', '3', '4', '5', '6', '7', '9', ':', '@']
+# Character Dictionary - Used for One-Hot Encoding
+char_dict = [' ', 
+#    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 
+    '!', '?', '$', "'", ',', '.', '0', '1', '2', '3', '4', '5', '6', '7', '9', ':', '@']
+possible_chars = len(char_dict)
 
 # Stop Words Dictionary
 stop_words = [ "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", 
@@ -76,6 +77,9 @@ def process_dataset_from_csv(path):
     else:
         # balanced
         pass
+
+    # Change data into lowercase
+    dataset['text'] = dataset['text'].str.lower()
 
     return dataset
 

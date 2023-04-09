@@ -275,6 +275,7 @@ def random_search(param_file_path, X, y, X_val, y_val, search_iterations=110,
 # search_iterations = ~10-20 times the number of parameters being optimized as a starting point.
 def bayesian_search(param_file_path, X, y, X_val, y_val, 
     search_iterations=120, acq_func='ucb', kappa=2.576, sigma_noise=1e-6,
+    target='accuracy',
     param_space = {
         "weight_regularizer_l1": (0, 0), 
         "bias_regularizer_l1": (0, 0),
@@ -302,13 +303,15 @@ def bayesian_search(param_file_path, X, y, X_val, y_val,
 
     # Slice X and y by 33%
     training_full_length = len(X)
-    training_split = int(training_full_length * 0.33)
+    training_split = int(training_full_length * 0.4)
     X = X[:training_split]
     y = y[:training_split] 
 
+    # Initialize variables for tracking progress
     i = 0;
     init_searches = len(bounds.keys())
     searches = search_iterations + init_searches
+    best_score = 0
 
     # Initialize the object function to minimize, which is the negative accuracy
     def objective(**params):
@@ -316,6 +319,8 @@ def bayesian_search(param_file_path, X, y, X_val, y_val,
         nonlocal i;
         nonlocal init_searches
         nonlocal searches;
+        nonlocal best_score;
+        nonlocal target;
 
         if i == init_searches + 1:
             print("\n" + time.strftime("[%H:%M:%S]", time.localtime(time.time())) +
@@ -366,24 +371,42 @@ def bayesian_search(param_file_path, X, y, X_val, y_val,
             ", Bias Regularization L2: " +  f'{param_set["bias_regularizer_l2"]}' +
             "]")
 
-
-
         # Train Model
         results = run_model(param_set, X, y, X_val, y_val, 1, 1, display_data=False)
 
-        # Print Results
-        print(time.strftime("[%H:%M:%S]", time.localtime(time.time())) +
-            "[Results: " +
-            "Score: " + f'{results[0] - results[2]}' +
-            ", Validation Accuracy: " + f'{results[0] * 100}%' +
-            ", Validation Loss: " + f'{results[2]}' + "]"
-        )
+        # Get score
+        if target == "accuracy":
+            score = results[0] # Score is for maximizing accuracy
+        elif target == "loss":
+            score = -results[2] # Score is for minimizing loss
+        elif target == "both": 
+            score = results[0] - results[2] # Score is for minimizing loss and maximizing accuracy
+        else:
+            raise Exception("Invalid target value: " + target)
+
+        # if score is better than best score, print in pink
+        if score > best_score and i > 0:
+            print("\033[95m" + time.strftime("[%H:%M:%S]", time.localtime(time.time())) +
+                "[Results: " +
+                "Score: " + f'{score}' +
+                ", Validation Accuracy: " + f'{results[0] * 100}%' +
+                ", Validation Loss: " + f'{results[2]}' + "]" + "\033[0m"
+            )
+            best_score = score
+        else:
+            # Print Results
+            print(time.strftime("[%H:%M:%S]", time.localtime(time.time())) +
+                "[Results: " +
+                "Score: " + f'{score}' +
+                ", Validation Accuracy: " + f'{results[0] * 100}%' +
+                ", Validation Loss: " + f'{results[2]}' + "]"
+            )
 
         # Increment iteration count
         i += 1
 
-        # Return target = accuracy - loss, to minimize loss and maximize accuracy
-        return results[0] - results[2]
+        return score
+
     
     # Get Start time
     start_time = time.time()

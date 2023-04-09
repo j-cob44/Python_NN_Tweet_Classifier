@@ -68,10 +68,4 @@ class Accuracy_Binary(Accuracy):
 
     # Compares predictions to the ground truth values
     def compare(self, predictions, y):
-        # For debug to see model's predictions
-        # print("Prediction: ")
-        # print(predictions.ravel())
-        # print("Correct: ")
-        # print(y.ravel())
-
         return predictions.round() == y

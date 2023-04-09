@@ -24,25 +24,24 @@ def create_model(
     # Initialize Model
     model = Model()
 
-    # Adding Layers to Model
-    # Input Layer
-    model.add(Layer_Dense(19600, neurons, # 19600 is 280 (length of tweet) * 70 (one-hot vector of characters)
-        weight_regularizer_l1=weight_regularizer_l1,
-        bias_regularizer_l1=bias_regularizer_l1,
-        weight_regularizer_l2=weight_regularizer_l2, 
-        bias_regularizer_l2=bias_regularizer_l2
-    ))
-    # NO ACTIVATION FUNCTION FOR INPUT LAYER BECAUSE THE DATA IS ALREADY NORMALIZED (0-1) AND ONE-HOT ENCODED
-    # Dropout is uncommon for input layer for binary classification, instead the input layer will be using weight and bias L1 and L2 regularization
+    inputs = 280 * possible_chars # 280 (length of tweet) * possible characters
 
-    # Hidden Layers
+    # Adding Layers to Model
     for i in range(hidden_layers):
-        model.add(Layer_Dense(neurons, neurons,
-            weight_regularizer_l1=weight_regularizer_l1,
-            bias_regularizer_l1=bias_regularizer_l1,
-            weight_regularizer_l2=weight_regularizer_l2, 
-            bias_regularizer_l2=bias_regularizer_l2
-        ))
+        if i == 0:
+            model.add(Layer_Dense(inputs, neurons,
+                weight_regularizer_l1=weight_regularizer_l1,
+                bias_regularizer_l1=bias_regularizer_l1,
+                weight_regularizer_l2=weight_regularizer_l2, 
+                bias_regularizer_l2=bias_regularizer_l2
+            ))
+        else:
+            model.add(Layer_Dense(neurons, neurons,
+                weight_regularizer_l1=weight_regularizer_l1,
+                bias_regularizer_l1=bias_regularizer_l1,
+                weight_regularizer_l2=weight_regularizer_l2, 
+                bias_regularizer_l2=bias_regularizer_l2
+            ))
         
         # Select Activation function for hidden layers
         if activation == "relu":
@@ -51,6 +50,8 @@ def create_model(
             model.add(Activation_Tanh())
         elif activation == "sigmoid":
             model.add(Activation_Sigmoid())
+        elif activation == "leakyrelu":
+            model.add(Activation_LeakyReLU())
         else:
             raise Exception("Activation Function not recognized")
         
