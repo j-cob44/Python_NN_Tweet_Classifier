@@ -1,0 +1,11 @@
+{
+    "time_to_train": 2230.845701932907,
+    "loss_function": "Loss_BinaryCrossEntropy",
+    "optimizer": "Optimizer_Adam",
+    "accuracy_function": "Accuracy_Binary",
+    "training_data": {
+        "training_accuracy": 0.9053452115812918,
+        "validation_accuracy": 0.868421052631579,
+        "validation_loss": 0.4904632113516332
+    }
+}

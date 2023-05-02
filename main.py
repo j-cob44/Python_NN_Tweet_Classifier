@@ -4,7 +4,7 @@
 # Constants
 ADDRESS = '127.0.0.1'
 PORT = 8080
-NN_MODEL_PATH = 'models/40_epoch_test.model'
+NN_MODEL_PATH = 'models/current_best.model'
 SUBMISSION_PATH = 'data_submissions/submission_data.json'
 
 import os
@@ -198,7 +198,7 @@ def run():
     print('Starting server...')
     server_address = (ADDRESS, PORT)
     httpd = HTTPServer(server_address, HTTPServer_RequestHandler)
-    print('Running server on port %s' % PORT)
+    print('Running server at {}:{}'.format(ADDRESS, PORT))
 
     # Try run server until keyboard interrupt
     try:

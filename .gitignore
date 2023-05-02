@@ -1,8 +1,12 @@
-# Secrets and Data
+# Secrets and Test Data
 __authsecrets__.py
-tweet_data/
-models/
-parameter_data/
+tweet_data/*
+models/*
+parameter_data/*
+
+# Don't Ignore Working Model
+!models/current_best_info_short.json
+!models/current_best.model
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
