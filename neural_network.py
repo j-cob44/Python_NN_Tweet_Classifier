@@ -29,28 +29,28 @@ while continue_actions:
                 full_v_path = None
             X, y, X_val, y_val = create_tweet_datasets(full_t_path, full_v_path)
 
-            # Create the model
-            model = create_model(
-                hidden_layers=2, 
-                neurons=200, 
-                dropout=0.2, 
-                learning_rate=0.01, 
-                learning_decay=1e-3, 
-                weight_regularizer_l1=0, 
-                weight_regularizer_l2=0.00001, 
-                bias_regularizer_l1=0, 
-                bias_regularizer_l2=0.00001, 
-                activation="tanh" # relu, tanh, sigmoid, leakyrelu
-            )
-
             # Check if X is 3D
             if len(X.shape) == 3:
                 # Make X 2D
                 X = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
 
+            # Create the model
+            model = create_model(
+                hidden_layers=2, 
+                neurons=291, 
+                dropout=0.12678879420467504, 
+                learning_rate=0.009893731095534928, 
+                learning_decay=0.009807068792481532, 
+                weight_regularizer_l1=0, 
+                weight_regularizer_l2=0.00028695964014064014, 
+                bias_regularizer_l1=0, 
+                bias_regularizer_l2=0.0007938889471017285, 
+                activation="relu" # relu, tanh, sigmoid, leakyrelu
+            )
+
             # Training Parameters
-            epochs = 40 # training iterations
-            batch_size = 64
+            epochs = 38 # training iterations
+            batch_size = 66
             print_every = 25
 
             # Check if validation data is provided
@@ -156,7 +156,7 @@ while continue_actions:
                 print(""); # New Line 
                 # Perform Bayesian Optimization Search
                 bayesian_search(parameter_save_path, X, y, X_val, y_val, 
-                    search_iterations=48, 
+                    search_iterations=100, 
                     acq_func='poi', # Acquisition function = 'ucb', 'ei', or 'poi'
                     kappa=2.576, 
                     sigma_noise=1e-6,
@@ -172,7 +172,7 @@ while continue_actions:
                         "dropout_rate": (0.1, 0.3),
                         "neurons": (int(149 + 1e-4), int(300)), # [(149, 150] = 150, 300]
                         "hidden_layers": (int(1 + 1e-4), int(3)), # (1, 2] = 2, (2, 3] = 3
-                        "activation_function": (int(0 + 1e-4), int(2)), # (0, 1] = relu, (1, 2] = tanh, (2, 3] = sigmoid
+                        "activation_function": (int(1 + 1e-4), int(2)), # (0, 1] = relu, (1, 2] = tanh, (2, 3] = sigmoid
                         # Training Parameters
                         "batch_size": (int(39 + 1e-4), int(100)), # (31, 32] = 32
                         "training_iterations": (int(19 + 1e-4), int(50)) # (7, 8] = 8, (8, 9] = 9, (31, 32] = 32

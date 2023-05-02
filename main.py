@@ -2,10 +2,10 @@
 # Jacob Burton 2023
 
 # Constants
-ADDRESS = '10.0.0.238'
+ADDRESS = '127.0.0.1'
 PORT = 8080
-NN_MODEL_PATH = 'models/combined_model.model'
-SUBMISSION_PATH = 'tweet_data/submissions/submitted_data.json'
+NN_MODEL_PATH = 'models/40_epoch_test.model'
+SUBMISSION_PATH = 'data_submissions/submission_data.json'
 
 import os
 
@@ -54,10 +54,15 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             file.close()
             
             return
+        
+        #!!! Twitter API Depreciated !!! 
         # /tweet/<id> - Get Tweet
         elif route[1] == 'tweet':
+            pass
+
             # Get the tweet
             tweet_id = route[2]
+
             try:
                 tweet_data = grab_tweet(tweet_id)
             except Exception as e:
@@ -73,8 +78,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_response(200, result)
             self.end_headers()
             return
+        
+        #!!! Twitter API Depreciated !!! 
         # /evaluate/<id> - Evaluate Tweet on the Network
-        elif route[1] == 'evaluate':      
+        elif route[1] == 'evaluate':
+            pass
+
             # Load the Model
             model = load_model(NN_MODEL_PATH)
 
@@ -95,8 +104,12 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_response(200, result)
             self.end_headers()
             return
-        # /submit/<id>/<category> - Submit Tweet to be trained in the model
+        
+        #!!! Twitter API Depreciated !!! 
+        # /submit/<id>/<category> - Submit Tweet to be trained in the model 
         if route[1] == 'submit':  
+            pass
+
             # Get the tweet
             tweet_id = route[2]
             category = route[3]
@@ -137,6 +150,8 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             post_data = json.loads(post_data)
 
+            confidence_percent, prediction = evaluate_text(model, post_data['text'])
+
             try:
                 confidence_percent, prediction = evaluate_text(model, post_data['text'])
             except Exception as e:
@@ -152,6 +167,7 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_response(200, result)
             self.end_headers()
             return
+        
         # /textsubmission/<category> - Submit Text to be trained in the model
         elif route[1] == 'textsubmission':
             category = route[2]

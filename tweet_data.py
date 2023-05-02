@@ -7,6 +7,10 @@ import pandas as pd
 
 from __authsecrets__ import secret
 
+# Twitter API v1.1 Authorization with keys from Secrets.py
+auth = tweepy.OAuth2BearerHandler(secret.bearer_token)
+api = tweepy.API(auth)
+
 # Dictionary for Neural Network Data Categories
 nn_data_categories = {
     1: "Positive",
@@ -26,10 +30,6 @@ stop_words = [ "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "
 
 # Maximum Tweet Length
 max_tweet_length = 280
-
-# Twitter API v1.1 Authorization with keys from Secrets.py
-auth = tweepy.OAuth2BearerHandler(secret.bearer_token)
-api = tweepy.API(auth)
 
 # Load CSV File | Input: path to csv file, Output: pandas dataframe
 def load_csv_file(path):
@@ -129,6 +129,19 @@ def one_hot_encode_tweet_dataset(tweets):
             one_hot[i, j, char_dict.index(tweets[i][j])] = 1
     return one_hot
 
+# One-hot encode single tweet | Input: string of text, Output: numpy array of one-hot encoded string
+def one_hot_encode_single_tweet(tweet):
+    # Create Zero'd array
+    one_hot = np.zeros((max_tweet_length, len(char_dict)))
+
+    # Iterate over each character in a string, setting the appropriate index to 1
+    for i in range(280):
+        char = tweet[i]
+        if char in char_dict:
+            one_hot[i, char_dict.index(char)] = 1
+
+    return one_hot
+
 # Load Dataset | Input: path to dataset, Output: numpy array X, numpy array y
 def load_tweet_data(path):
     # Instantiate empty lists
@@ -175,9 +188,7 @@ def create_tweet_datasets(trainingPath, validationPath=None):
     else:
         return X, y, None, None
 
-# TODO: Implement Following Functions
-
-# Analyze Data from Tweet Dataset
+# Analyze Data from Tweet Dataset # DEBUG
 # def analyze_dataset(path):
 #     # Load Tweet Data
 #     tweets = []
@@ -195,21 +206,23 @@ def create_tweet_datasets(trainingPath, validationPath=None):
 #     # Print length of longest string in dataset to ensure its 280 characters
 #     print("Longest Tweet: " + str(max([len(tweet[0]) for tweet in tweets])))
 
+# ##########################################################
+# TWITTER API 1.1 CURRENTLY SHUT DOWN AS OF 4/20/2023
+
 # Grab a tweet by ID
 def grab_tweet(id):
-    # try:
-    #     tweet = api.get_status(id, tweet_mode='extended')
-    # except:
-    #     raise Exception("Error grabbing tweet.")
+    try:
+        tweet = api.get_status(id)
+    except:
+        raise Exception("Error grabbing tweet.")
     
-    # # Skip Retweets
-    # if tweet.retweeted or 'RT @' in tweet.full_text:
-    #     raise Exception("Tweet is a Retweet.")
+    # Skip Retweets
+    if tweet.retweeted or 'RT @' in tweet.full_text:
+        raise Exception("Tweet is a Retweet.")
     
-    # tweet = tweet.full_text.replace("\n", " ")
+    tweet_text = tweet.full_text.replace("\n", " ")
 
-    # return tweet
-    pass
+    return tweet_text
 
 # Grab and process a single tweet from twitter
 def grab_processed_tweet(id):

@@ -4,6 +4,7 @@
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+import datetime
 
 from model import *
 from tweet_data import *
@@ -163,9 +164,10 @@ def analyze_training_data(path):
     # Display
     plt.show()
 
-
+#!!! Twitter API Depreciated !!! 
 # Evaluate on a single tweet
 def evaluate_tweet(model, tweet_id):
+    pass
     # try:
     #     tweet = grab_processed_tweet(tweet_id)
     # except Exception as e:
@@ -185,60 +187,84 @@ def evaluate_tweet(model, tweet_id):
     # #tweet_text = raw_tweet.full_text.replace("\n", " ")
     # #print("\n" + tweet_text + "\n")
 
-    # # Get Category and Print
-    # for prediction in predictions:
-    #     highest_confidence_as_percent = np.max(confidences) * 100
-    #     #print("Network is", f'{highest_confidence_as_percent:.3f}%', "confident this tweet is", nn_data_categories[prediction])
-    
+    # Get Category and Print
+    # highest_confidence_as_percent = (np.abs(confidences[0][0] - 0.5) + 0.5) * 100 # Scale value 
+    # prediction = predictions[0][0]
+
     # return highest_confidence_as_percent, nn_data_categories[prediction]
-    pass
 
-# Process Text for Neural Network Input - Input as string, output as list of characters
+# Process Text for Neural Network Input - Input as string, output as one-hot encoded vector
 def process_text_for_nn(text):
-    # # Process text For Neural Network Input
-    # text = text.replace("\n", " ")
+    # Lowercase all letters
+    text = text.lower()
 
-    # # Remove emoji's from tweets
-    # text = text.encode('ascii', 'ignore').decode('ascii')
+    # Remove stop words
+    text = remove_stopwords(text)
 
-    # # Use Regex to remove entire link from tweets
-    # text = re.sub(r'http\S+', '', text)
+    # Replace Apostrophes
+    text = text.replace('‘', "'").replace('’', "'")
 
-    # # Set all characters to lowercase
-    # text = text.lower()
+    # Remove all characters that are not in the character dictionary
+    for char in text:
+        if char not in char_dict:
+            text = text.replace(char, '')
+            pass
+    
+    # Remove '\n' characters
+    text = text.replace('\n', ' ')
 
-    # # Remove all double spaces
-    # text = text.replace("  ", " ")
+    # Make sure all tweets are 280 characters long
+    if len(text) < max_tweet_length:
+        # Add spaces to the end of the tweet to make it 280 characters long
+        text = text.ljust(max_tweet_length, ' ')
 
-    # # If tweet is not 280 characters long, add spaces to end of tweet
-    # if len(text) < 280:
-    #     text = text + (" " * (280 - len(text)))
+    # Character-level One-Hot Encode Tweet text
+    one_hot_text = one_hot_encode_single_tweet(text)
 
-    # # Turn string into list of characters
-    # text = list(text)
-
-    # return text
-    pass
+    return one_hot_text
 
 # Evaluate text in the Neural Network
 def evaluate_text(model, text):
-    # # Process Text For Neural Network Input
-    # text = process_text_for_nn(text)
+    # Process Text For Neural Network Input
+    one_hot_vector = process_text_for_nn(text)
 
-    # # Process "Tweet" for Neural Network Input
-    # text = process_single_tweet_for_nn(text)
+    # Reshape Input
+    data_input = one_hot_vector.reshape(one_hot_vector.shape[0] * one_hot_vector.shape[1])
 
-    # # Make Prediction on Text
-    # confidences = model.predict(text)
+    # Make Prediction on Input
+    confidences = model.predict(data_input)
 
-    # # Get Prediction from Confidence Level
-    # predictions = model.output_layer_activation.predictions(confidences)
+    # Get Prediction from Confidence Level
+    predictions = model.output_layer_activation.predictions(confidences)
 
-    # # Get Category and Print
-    # for prediction in predictions:
-    #     highest_confidence_as_percent = np.max(confidences) * 100
-    #     #print("Network is", f'{highest_confidence_as_percent:.3f}%', "confident this tweet is", nn_data_categories[prediction])
-    
-    # return highest_confidence_as_percent, nn_data_categories[prediction]
+    # Get Category and Print
+    highest_confidence_as_percent = (np.abs(confidences[0][0] - 0.5) + 0.5) * 100 # Scale value 
+    prediction = predictions[0][0]
+
+    return highest_confidence_as_percent, nn_data_categories[prediction]
+
+#!!! Twitter API Depreciated !!!
+# Add a tweet to the database for further training
+def add_tweet_by_id(tweet, category, submission_path):
     pass
 
+# Add text submission to the database for further training
+def add_text_submission(text, category, submission_path):
+    # Get current time
+    current_time = datetime.datetime.now()
+
+    # Create submission
+    submission = {
+        "text": text,
+        "category": category,
+        "time": current_time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    # Add submission to database
+    with open(submission_path, "r") as f:
+        submissions = json.load(f)
+    
+    submissions.append(submission)
+
+    with open(submission_path, "w") as f:
+        json.dump(submissions, f, indent=4)
